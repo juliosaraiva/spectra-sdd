@@ -1,0 +1,86 @@
+spectra:
+  version: "1.0"
+  type: constitution
+  semver: "1.0.0"
+  updated: "2026-03-22T10:00:00Z"
+  stewards:
+    - "@julio"
+    - "@alice"
+
+vocabulary:
+  - identity
+  - security
+  - persistence
+  - transport
+  - observability
+  - auth
+  - api
+  - ui
+  - integration
+  - infrastructure
+  - architecture
+
+constraints:
+  - id: SEC-001
+    title: No secrets in source code
+    description: API keys, passwords, tokens, and other secrets must never appear in source files. Use environment variables or secret management systems.
+    domain:
+      - security
+    enforcement: MUST
+    rationale: Leaked secrets in version control are the most common cause of security breaches.
+
+  - id: SEC-002
+    title: Validate all external inputs
+    description: All data from external sources (user input, APIs, files) must be validated before processing.
+    domain:
+      - security
+      - api
+      - transport
+    enforcement: MUST
+    rationale: Input validation prevents injection attacks and data corruption.
+
+  - id: SEC-003
+    title: Rate limit all public endpoints
+    description: Every public-facing endpoint must implement rate limiting to prevent abuse and denial of service.
+    domain:
+      - security
+      - api
+      - transport
+    enforcement: MUST
+
+  - id: ARCH-001
+    title: Single responsibility per module
+    description: Each module, class, or function should have one clear responsibility. Avoid god objects and mixed concerns.
+    domain:
+      - architecture
+      - persistence
+      - transport
+      - identity
+      - observability
+    enforcement: SHOULD
+
+  - id: QUAL-001
+    title: Acceptance criteria for public interfaces
+    description: Every public API endpoint, event, or exported function must have corresponding acceptance criteria in its feature spec.
+    domain:
+      - api
+      - transport
+      - integration
+    enforcement: MUST
+
+  - id: QUAL-002
+    title: Critical paths must be tested
+    description: All code paths in critical business logic must have corresponding test coverage.
+    domain:
+      - security
+      - identity
+      - persistence
+    enforcement: MUST
+
+  - id: OBS-001
+    title: Structured logging for all operations
+    description: All significant operations must emit structured log entries with correlation IDs, timestamps, and outcome status.
+    domain:
+      - observability
+      - api
+    enforcement: SHOULD

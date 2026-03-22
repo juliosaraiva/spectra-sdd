@@ -1,0 +1,63 @@
+spectra:
+  version: "1.0"
+  type: impl
+  id: "impl:user-authentication.transport-rest"
+  semver: "1.0.0"
+  status: draft
+  created: "2026-03-22T10:00:00Z"
+  updated: "2026-03-22T10:00:00Z"
+  authors:
+    - "@julio"
+  reviewers: []
+  feature_ref: "feat:user-authentication@2.1.0"
+  concern: transport.rest
+
+design:
+  endpoint: "POST /auth/sessions"
+  request_content_type: application/json
+  response_content_type: application/json
+
+  request_schema:
+    type: object
+    properties:
+      email:
+        type: string
+        format: email
+      password:
+        type: string
+        minLength: 8
+        maxLength: 128
+    required:
+      - email
+      - password
+
+  response_schema:
+    success:
+      status: 201
+      schema:
+        type: object
+        properties:
+          token:
+            type: string
+          expires_at:
+            type: string
+            format: date-time
+          user_id:
+            type: string
+            format: uuid
+    errors:
+      - status: 401
+        condition: invalid credentials
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+      - status: 429
+        condition: rate limit exceeded
+        headers:
+          Retry-After: integer
+
+  middleware:
+    - rate-limiter
+    - request-logger

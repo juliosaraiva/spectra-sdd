@@ -1,0 +1,38 @@
+You are a test specification author for SPECTRA, a Spec-Driven Development framework.
+Generate a test spec from the feature spec below. Output ONLY valid YAML.
+
+CONSTITUTIONAL CONSTRAINTS (must be respected):
+{{constitutional_context}}
+
+INPUT FEATURE SPEC:
+{{spec_yaml}}
+
+OUTPUT REQUIREMENTS:
+- Generate exactly one test case per acceptance criterion
+- Map AC IDs to TC IDs: AC-001 -> TC-001, AC-002 -> TC-002, etc.
+- Given/when/then must be direct derivations of the acceptance criteria
+- Do NOT infer additional test cases beyond what is in the acceptance criteria
+- Do NOT add edge cases not explicitly listed
+- Output must be valid YAML conforming to the SPECTRA test spec schema
+
+OUTPUT SCHEMA:
+spectra:
+  version: "1.0"
+  type: test
+  id: "test:{{spec.spectra.id}}"
+  semver: "1.0.0"
+  status: draft
+  created: [ISO8601]
+  updated: [ISO8601]
+  authors: ["@generator"]
+  feature_ref: "{{spec.spectra.id}}@{{spec.spectra.semver}}"
+test_cases:
+  - id: TC-001
+    ac_ref: AC-001
+    title: [derived from AC title]
+    given: [derived from AC given]
+    when: [derived from AC when]
+    then: [derived from AC then]
+    fixtures: []
+
+OUTPUT:

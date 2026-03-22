@@ -1,0 +1,93 @@
+spectra:
+  version: "1.0"
+  type: feature
+  id: "feat:user-authentication"
+  semver: "2.1.0"
+  status: active
+  created: "2026-03-22T10:00:00Z"
+  updated: "2026-03-22T10:00:00Z"
+  authors:
+    - "@julio"
+  reviewers:
+    - "@alice"
+    - "@bob"
+  constitution_ref: "const:v1.0"
+
+identity:
+  title: User Authentication
+  domain:
+    - identity
+    - security
+  tags:
+    - auth
+    - session
+    - jwt
+  summary: Users can authenticate using email/password and receive a session token
+
+interfaces:
+  inputs:
+    - name: credentials
+      schema:
+        email: string
+        password: string
+      constraints:
+        - "email must be valid RFC 5322"
+        - "password 8-128 chars"
+  outputs:
+    - name: session
+      schema:
+        token: string
+        expires_at: iso8601
+        user_id: uuid
+  events_emitted:
+    - name: "identity.user.authenticated"
+      schema_ref: "schema:identity.events.v1"
+  events_consumed: []
+
+acceptance_criteria:
+  - id: AC-001
+    title: Successful login
+    given: a registered user with valid credentials
+    when: the user submits email and password
+    then:
+      - a JWT token is returned
+      - the token expires in 24 hours
+      - a session record is created
+      - identity.user.authenticated event is emitted
+    non_negotiable: true
+
+  - id: AC-002
+    title: Failed login - invalid password
+    given: a registered user with an incorrect password
+    when: the user submits email and incorrect password
+    then:
+      - HTTP 401 is returned
+      - error message does not reveal whether email exists
+      - failed attempt is recorded
+    non_negotiable: true
+
+  - id: AC-003
+    title: Rate limiting
+    given: 5 failed attempts from the same IP within 10 minutes
+    when: a sixth attempt is made
+    then:
+      - HTTP 429 is returned
+      - Retry-After header is set to 600 seconds
+    non_negotiable: false
+    constitution_constraints:
+      - SEC-002
+
+non_functional:
+  performance:
+    - "p99 authentication latency < 200ms under 1000 concurrent users"
+  security:
+    - "passwords never stored in plaintext"
+    - "tokens signed with RS256"
+  observability:
+    - "authentication attempts logged with result and latency"
+
+dependencies:
+  feature_refs:
+    - "feat:user-registration"
+  schema_refs:
+    - "schema:identity.events.v1"
