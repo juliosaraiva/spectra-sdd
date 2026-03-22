@@ -76,7 +76,6 @@ export async function loadTemplateById(
   const builtinPath = join(
     new URL(".", import.meta.url).pathname,
     "..",
-    "..",
     "templates",
     `${templateId}.tmpl`
   );
