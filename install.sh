@@ -92,7 +92,14 @@ fi
 # --- Build ---
 
 info "Installing dependencies..."
-npm ci --silent 2>&1 | tail -1 || true
+npm_ci_log="$(mktemp -t spectra-npm-ci-XXXXXX)"
+if ! npm ci --silent >"$npm_ci_log" 2>&1; then
+  echo "npm ci failed. Full output:"
+  cat "$npm_ci_log"
+  rm -f "$npm_ci_log"
+  error "Dependency installation failed. Aborting."
+fi
+rm -f "$npm_ci_log"
 
 info "Building..."
 npm run build --silent

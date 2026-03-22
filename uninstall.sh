@@ -38,21 +38,25 @@ done
 # Also check SPECTRA_BIN_DIR
 if [ -z "$FOUND_SYMLINK" ] && [ -n "${SPECTRA_BIN_DIR:-}" ]; then
   if [ -L "${SPECTRA_BIN_DIR}/spectra" ]; then
-    FOUND_SYMLINK="${SPECTRA_BIN_DIR}/spectra"
+    TARGET=$(readlink "${SPECTRA_BIN_DIR}/spectra" 2>/dev/null || true)
+    if [[ "$TARGET" == *spectra-sdd* ]] || [[ "$TARGET" == "$INSTALL_DIR/dist/index.js" ]]; then
+      FOUND_SYMLINK="${SPECTRA_BIN_DIR}/spectra"
+    fi
   fi
 fi
 
 if [ -n "$FOUND_SYMLINK" ]; then
   if [ -w "$(dirname "$FOUND_SYMLINK")" ]; then
     rm -f "$FOUND_SYMLINK"
+    success "Removed symlink ${FOUND_SYMLINK}"
   elif command -v sudo >/dev/null 2>&1; then
     sudo rm -f "$FOUND_SYMLINK"
+    success "Removed symlink ${FOUND_SYMLINK}"
   else
     info "Could not remove ${FOUND_SYMLINK} (permission denied). Remove it manually."
   fi
-  success "Removed symlink ${FOUND_SYMLINK}"
 else
-  info "No spectra symlink found in PATH"
+  info "No spectra symlink found in /usr/local/bin, ~/.local/bin, or \$SPECTRA_BIN_DIR"
 fi
 
 # --- Remove install directory ---

@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { mkdir, rm, readFile, access } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { join, resolve, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { execSync } from "node:child_process";
 import { parse } from "yaml";
+import { fileURLToPath } from "node:url";
 
-const PROJECT_ROOT = resolve(import.meta.dirname, "..", "..");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = resolve(__dirname, "..", "..");
 const CLI_PATH = join(PROJECT_ROOT, "src", "cli", "index.ts");
 const TEST_DIR = join(tmpdir(), "spectra-test-init-" + Date.now());
 
