@@ -77,17 +77,48 @@ The result is a development process where **nothing exists without a spec, and n
 
 ### Install
 
+**One-line installer (recommended):**
+
 ```bash
-npm install spectra-sdd
+curl -fsSL https://raw.githubusercontent.com/juliosaraiva/spectra-sdd/main/install.sh | bash
 ```
 
-Or run directly from the repository:
+This clones the repo to `~/.spectra-sdd/`, builds the CLI, and symlinks `spectra` into your PATH.
+
+**Requirements:** Node.js >= 20.0.0, npm, git
+
+**Via npm (alternative):**
 
 ```bash
-git clone https://github.com/juliosaraiva/spectra-sdd.git
-cd spectra-sdd
-npm install
-npm run build
+npm install -g github:juliosaraiva/spectra-sdd
+```
+
+**Custom install location:**
+
+```bash
+SPECTRA_INSTALL_DIR=~/tools/spectra SPECTRA_BIN_DIR=~/.local/bin \
+  curl -fsSL https://raw.githubusercontent.com/juliosaraiva/spectra-sdd/main/install.sh | bash
+```
+
+**Updating:**
+
+Re-run the installer -- it pulls the latest changes and rebuilds:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/juliosaraiva/spectra-sdd/main/install.sh | bash
+```
+
+**Uninstalling:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/juliosaraiva/spectra-sdd/main/uninstall.sh | bash
+```
+
+Or manually:
+
+```bash
+rm -f /usr/local/bin/spectra
+rm -rf ~/.spectra-sdd
 ```
 
 ### Initialize a project
