@@ -44,10 +44,10 @@ import yaml, sys
 try:
     with open('.spectra/config.yaml') as f:
         cfg = yaml.safe_load(f)
-    print(cfg.get('ai_tools', {}).get('enforcement', 'warn'))
+    print(cfg.get('ai_tools', {}).get('enforcement', 'strict'))
 except:
-    print('warn')
-" 2>/dev/null || echo "warn")
+    print('strict')
+" 2>/dev/null || echo "strict")
 
 # If enforcement is off, allow everything
 if [ "$ENFORCEMENT" = "off" ]; then
@@ -55,13 +55,13 @@ if [ "$ENFORCEMENT" = "off" ]; then
 fi
 
 # Check skip_paths
-SKIP=$(python3 -c "
-import yaml, sys
+SKIP=$(FILE_PATH="$FILE_PATH" python3 -c "
+import yaml, sys, os
 try:
     with open('.spectra/config.yaml') as f:
         cfg = yaml.safe_load(f)
     skip = cfg.get('ai_tools', {}).get('skip_paths', [])
-    path = '$FILE_PATH'
+    path = os.environ.get('FILE_PATH', '')
     for s in skip:
         if path.startswith(s):
             print('skip')
@@ -77,7 +77,8 @@ fi
 
 # Check if any implement gate is signed (approved)
 IMPLEMENT_SIGNED="no"
-for gate_file in .spectra/gates/*--implement.gate.yaml 2>/dev/null; do
+shopt -s nullglob
+for gate_file in .spectra/gates/*--implement.gate.yaml; do
   if [ -f "$gate_file" ]; then
     if grep -q "status: approved" "$gate_file" 2>/dev/null; then
       IMPLEMENT_SIGNED="yes"
@@ -85,6 +86,7 @@ for gate_file in .spectra/gates/*--implement.gate.yaml 2>/dev/null; do
     fi
   fi
 done
+shopt -u nullglob
 
 # If implement gate is signed, allow
 if [ "$IMPLEMENT_SIGNED" = "yes" ]; then

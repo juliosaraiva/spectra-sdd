@@ -202,4 +202,27 @@ describe("spectra init", () => {
     expect(afterContent).toBe(sentinel);
     expect(afterContent).not.toBe(originalContent);
   });
+
+  it("does not overwrite pre-existing .claude/ files on first init", async () => {
+    // Pre-create .claude/ with a customized settings.json before any spectra init
+    const claudeDir = join(TEST_DIR, ".claude");
+    await mkdir(claudeDir, { recursive: true });
+    const sentinel = JSON.stringify({ customized: true });
+    await writeFile(join(claudeDir, "settings.json"), sentinel);
+
+    // Run spectra init --claude for the first time
+    execSync(`npx tsx ${CLI_PATH} init --claude`, {
+      cwd: TEST_DIR,
+      encoding: "utf8",
+    });
+
+    // The pre-existing file must not have been overwritten
+    const afterContent = await readFile(join(claudeDir, "settings.json"), "utf8");
+    expect(afterContent).toBe(sentinel);
+
+    // Other scaffold files that did NOT pre-exist should have been created
+    await expect(
+      access(join(claudeDir, "hooks", "spectra-pre-edit-guard.sh"))
+    ).resolves.toBeUndefined();
+  });
 });
