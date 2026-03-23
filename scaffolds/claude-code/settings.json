@@ -8,7 +8,13 @@
       "Write(.spectra/tests/**)",
       "Write(.spectra/gates/**)",
       "Edit(.spectra/features/**)",
-      "Edit(.spectra/impl/**)"
+      "Edit(.spectra/impl/**)",
+      "Write(src/**)",
+      "Edit(src/**)",
+      "Write(lib/**)",
+      "Edit(lib/**)",
+      "Write(app/**)",
+      "Edit(app/**)"
     ]
   },
   "hooks": {
