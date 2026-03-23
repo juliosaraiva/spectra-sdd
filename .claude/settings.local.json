@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.thoughtworks.com)",
+      "WebFetch(domain:martinfowler.com)",
+      "WebFetch(domain:www.pulumi.com)",
+      "WebFetch(domain:contextpatterns.com)",
+      "WebFetch(domain:myengineeringpath.dev)",
+      "WebFetch(domain:www.infoq.com)",
+      "WebFetch(domain:www.javacodegeeks.com)",
+      "WebFetch(domain:developer.hashicorp.com)",
+      "WebFetch(domain:github.blog)",
+      "WebFetch(domain:www.deployhq.com)",
+      "WebFetch(domain:nix.dev)",
+      "WebFetch(domain:kiro.dev)",
+      "WebFetch(domain:spring.io)",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:tessl.io)",
+      "WebFetch(domain:spacelift.io)",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:claude.com)",
+      "WebFetch(domain:developers.redhat.com)",
+      "WebFetch(domain:medium.com)",
+      "Bash(git init:*)",
+      "Bash(chmod:*)",
+      "Bash(git -C /Users/juliosaraiva/Developer/spectra-sdd log --oneline --all)",
+      "WebFetch(domain:developers.openai.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:ai.google.dev)",
+      "Read(//Users/juliosaraiva/.claude/**)",
+      "Read(//private/tmp/spectra-test-project/.claude/hooks/**)",
+      "Read(//private/tmp/spectra-test-project/.spectra/**)",
+      "Bash(git pull:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh api:*)",
+      "Bash(git fetch:*)"
+    ]
+  }
+}
