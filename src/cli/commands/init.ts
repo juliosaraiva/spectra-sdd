@@ -66,8 +66,11 @@ async function copyScaffolds(
         try {
           await access(destPath);
           continue;
-        } catch {
-          // File does not exist — safe to copy
+        } catch (err: any) {
+          // Only treat ENOENT ("file not found") as safe to copy; rethrow others
+          if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+            throw err;
+          }
         }
         await copyFile(srcPath, destPath);
         copied.push(destPath);
