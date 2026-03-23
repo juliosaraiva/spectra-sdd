@@ -35,7 +35,8 @@
   },
   "files": [
     "dist",
-    "templates"
+    "templates",
+    "scaffolds"
   ],
   "keywords": [
     "spec-driven-development",

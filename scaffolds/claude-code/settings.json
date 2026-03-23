@@ -1,0 +1,54 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(spectra *)",
+      "Bash(cat .spectra/**)",
+      "Bash(ls .spectra/**)",
+      "Read(.spectra/**)",
+      "Write(.spectra/tests/**)",
+      "Write(.spectra/gates/**)",
+      "Edit(.spectra/features/**)",
+      "Edit(.spectra/impl/**)",
+      "Write(src/**)",
+      "Edit(src/**)",
+      "Write(lib/**)",
+      "Edit(lib/**)",
+      "Write(app/**)",
+      "Edit(app/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/spectra-pre-edit-guard.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/spectra-post-edit.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/spectra-session-start.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
