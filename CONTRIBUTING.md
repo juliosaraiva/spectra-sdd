@@ -110,18 +110,40 @@ npm run test:watch
 
 ## Commit Conventions
 
-We use [Conventional Commits](https://www.conventionalcommits.org/):
+We use [Conventional Commits](https://www.conventionalcommits.org/), enforced locally by [commitlint](https://commitlint.js.org/) via a Husky `commit-msg` hook. Non-conforming commits will be rejected.
 
-```
-feat: add new feature
-fix: fix a bug
-docs: documentation changes
-refactor: code refactoring (no behavior change)
-test: add or update tests
-chore: maintenance tasks
-```
+### Allowed types
+
+| Type | Release | Description |
+|------|---------|-------------|
+| `feat` | minor | New feature |
+| `fix` | patch | Bug fix |
+| `perf` | patch | Performance improvement |
+| `revert` | patch | Revert a previous commit |
+| `docs` | none | Documentation only |
+| `refactor` | none | Code change with no behavior change |
+| `test` | none | Add or update tests |
+| `chore` | none | Maintenance tasks |
+| `ci` | none | CI/CD changes |
+| `build` | none | Build system changes |
 
 Scope is optional: `feat(gate): add --method option to gate sign command`
+
+### Breaking changes
+
+While the project is pre-1.0, breaking changes trigger a **minor** bump (not major). Use either syntax:
+
+```
+feat!: remove deprecated --legacy flag
+```
+
+or include `BREAKING CHANGE:` in the commit body:
+
+```
+feat: redesign gate signing flow
+
+BREAKING CHANGE: gate sign now requires --method flag
+```
 
 ## Pull Request Process
 
