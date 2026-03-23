@@ -8,6 +8,8 @@ import {
   chmod,
 } from "node:fs/promises";
 import { join } from "node:path";
+import { homedir } from "node:os";
+import { fileURLToPath } from "node:url";
 import { stringify } from "yaml";
 import chalk from "chalk";
 import { SPECTRA_DIR, DEFAULT_CONFIG } from "../../core/config.js";
@@ -27,7 +29,7 @@ async function detectAiTool(projectRoot: string): Promise<AiTool> {
 async function findScaffoldsDir(): Promise<string | null> {
   // Resolve scaffolds/ relative to the package root.
   // Works from both dist/index.js (production) and src/cli/commands/init.ts (dev via tsx).
-  const base = new URL(".", import.meta.url).pathname;
+  const base = fileURLToPath(new URL(".", import.meta.url));
   const candidates = [
     join(base, "..", "scaffolds"),         // from dist/
     join(base, "..", "..", "..", "scaffolds"), // from src/cli/commands/
@@ -60,12 +62,16 @@ async function copyScaffolds(
       if (entry.isDirectory()) {
         await copyRecursive(srcPath, destPath);
       } else {
-        await copyFile(srcPath, destPath);
-        copied.push(destPath);
+        // Skip existing files to avoid overwriting user customizations
+        const exists = await access(destPath).then(() => true).catch(() => false);
+        if (!exists) {
+          await copyFile(srcPath, destPath);
+          copied.push(destPath);
 
-        // Make hook scripts executable
-        if (entry.name.endsWith(".sh")) {
-          await chmod(destPath, 0o755);
+          // Make hook scripts executable
+          if (entry.name.endsWith(".sh")) {
+            await chmod(destPath, 0o755);
+          }
         }
       }
     }
@@ -221,7 +227,11 @@ export const initCommand = new Command("init")
       let targetDir: string;
 
       if (opts.global) {
-        const home = process.env.HOME ?? process.env.USERPROFILE ?? "";
+        const home = homedir();
+        if (!home) {
+          console.log(chalk.red("Cannot determine home directory. Use --global only when HOME is set."));
+          return;
+        }
         targetDir = join(home, ".claude");
       } else {
         targetDir = join(projectRoot, ".claude");
