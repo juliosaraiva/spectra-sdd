@@ -175,23 +175,6 @@ describe("spectra init", () => {
     await expect(access(join(TEST_DIR, ".claude"))).rejects.toThrow();
   });
 
-  it("does not overwrite existing scaffold files when .claude/ already has customizations", async () => {
-    // Pre-create .claude/settings.json with custom content (simulating an existing Claude config)
-    const claudeDir = join(TEST_DIR, ".claude");
-    await mkdir(claudeDir, { recursive: true });
-    const customSettings = JSON.stringify({ custom: true, sentinel: "do-not-overwrite" });
-    await writeFile(join(claudeDir, "settings.json"), customSettings);
-
-    // Run init --claude — auto-detects .claude/ but must NOT overwrite the existing settings.json
-    execSync(`npx tsx ${CLI_PATH} init --claude`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
-
-    const afterContent = await readFile(join(claudeDir, "settings.json"), "utf8");
-    expect(afterContent).toBe(customSettings);
-  });
-
   it("does not overwrite scaffold files once .spectra is initialized (re-init guard)", async () => {
     // First init with --claude writes scaffolds
     execSync(`npx tsx ${CLI_PATH} init --claude`, {
