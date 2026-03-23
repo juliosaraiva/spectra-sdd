@@ -39,11 +39,7 @@ export async function generate(
 
   // Load spec
   const featureName = specId.replace(/^feat:/, "");
-  const specPath = resolveSpectraPath(
-    projectRoot,
-    "features",
-    `${featureName}.spec.yaml`
-  );
+  const specPath = resolveSpectraPath(projectRoot, "features", `${featureName}.spec.yaml`);
 
   let specRaw: string;
   try {
@@ -104,10 +100,7 @@ export async function generate(
     const constraints = selectConstraints(constitution, domain);
     if (constraints.length > 0) {
       constitutionalContext = constraints
-        .map(
-          (c) =>
-            `[${c.id}] ${c.enforcement}: ${c.title}\n  ${c.description}`
-        )
+        .map((c) => `[${c.id}] ${c.enforcement}: ${c.title}\n  ${c.description}`)
         .join("\n\n");
     }
   } catch {
@@ -128,21 +121,15 @@ export async function generate(
   const outputHash = contentHash({ output: rendered });
 
   // Lock the generation
-  const lockEntry = await lockGeneration(
-    projectRoot,
-    specId,
-    specVersion,
-    target,
-    {
-      template_id: templateId,
-      template_version: "1.0",
-      template_hash: templateHash,
-      input_spec_hash: inputHash,
-      model: "human",
-      model_params: {},
-      output_hash: outputHash,
-    }
-  );
+  const lockEntry = await lockGeneration(projectRoot, specId, specVersion, target, {
+    template_id: templateId,
+    template_version: "1.0",
+    template_hash: templateHash,
+    input_spec_hash: inputHash,
+    model: "human",
+    model_params: {},
+    output_hash: outputHash,
+  });
 
   return {
     success: true,

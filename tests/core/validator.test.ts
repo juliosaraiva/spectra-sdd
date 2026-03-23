@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { FeatureSpecSchema, ConstitutionSchema, ImplSpecSchema, GateSchema } from "../../src/core/spec-types.js";
+import {
+  FeatureSpecSchema,
+  ConstitutionSchema,
+  ImplSpecSchema,
+  GateSchema,
+} from "../../src/core/spec-types.js";
 
 describe("FeatureSpecSchema", () => {
   const validSpec = {
@@ -44,16 +49,14 @@ describe("FeatureSpecSchema", () => {
   it("rejects invalid AC ID format", () => {
     const invalid = {
       ...validSpec,
-      acceptance_criteria: [
-        { ...validSpec.acceptance_criteria[0], id: "bad-id" },
-      ],
+      acceptance_criteria: [{ ...validSpec.acceptance_criteria[0], id: "bad-id" }],
     };
     const result = FeatureSpecSchema.safeParse(invalid);
     expect(result.success).toBe(false);
   });
 
   it("rejects missing identity", () => {
-    const { identity, ...invalid } = validSpec;
+    const { identity: _identity, ...invalid } = validSpec;
     const result = FeatureSpecSchema.safeParse(invalid);
     expect(result.success).toBe(false);
   });

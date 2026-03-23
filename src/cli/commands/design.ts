@@ -6,17 +6,9 @@ import chalk from "chalk";
 import { resolveSpectraPath } from "../../core/config.js";
 import type { ImplSpec } from "../../core/spec-types.js";
 
-const DEFAULT_CONCERNS = [
-  "transport.rest",
-  "persistence.relational",
-  "auth.middleware",
-];
+const DEFAULT_CONCERNS = ["transport.rest", "persistence.relational", "auth.middleware"];
 
-function implTemplate(
-  featureId: string,
-  concern: string,
-  featureRef: string
-): ImplSpec {
+function implTemplate(featureId: string, concern: string, featureRef: string): ImplSpec {
   const now = new Date().toISOString();
   const implId = `impl:${featureId.replace(/^feat:/, "")}.${concern.replace(/\./g, "-")}`;
   return {
@@ -42,11 +34,7 @@ function implTemplate(
 export const designCommand = new Command("design")
   .description("Generate implementation spec scaffolds for a feature")
   .argument("<feat-id>", "Feature spec ID (e.g., feat:user-authentication)")
-  .option(
-    "--concerns <concerns>",
-    "Comma-separated concern namespaces",
-    DEFAULT_CONCERNS.join(",")
-  )
+  .option("--concerns <concerns>", "Comma-separated concern namespaces", DEFAULT_CONCERNS.join(","))
   .action(async (featId: string, opts) => {
     const projectRoot = process.cwd();
 
@@ -54,9 +42,7 @@ export const designCommand = new Command("design")
     const indexPath = resolveSpectraPath(projectRoot, "features", "_index.yaml");
     const indexRaw = await readFile(indexPath, "utf8");
     const index = parse(indexRaw);
-    const entry = index?.features?.find(
-      (f: { id: string }) => f.id === featId
-    );
+    const entry = index?.features?.find((f: { id: string }) => f.id === featId);
 
     if (!entry) {
       console.log(chalk.red(`Feature spec not found: ${featId}`));

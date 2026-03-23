@@ -34,7 +34,9 @@ function printDriftReport(report: DriftReport) {
         : chalk.red;
 
   console.log(chalk.bold("\nDrift Report\n"));
-  console.log(`  Score: ${scoreColor(report.project_drift_score.toFixed(2))} (0 = clean, 1 = fully drifted)`);
+  console.log(
+    `  Score: ${scoreColor(report.project_drift_score.toFixed(2))} (0 = clean, 1 = fully drifted)`
+  );
   console.log(`  Total issues: ${report.items.length}`);
   console.log();
 
@@ -49,8 +51,7 @@ function printDriftReport(report: DriftReport) {
     console.log(`  ${statusIcon} ${specId} [${feature.drift_types.join(", ")}]`);
 
     for (const item of feature.items) {
-      const severity =
-        item.severity === "error" ? chalk.red("  ERROR") : chalk.yellow("  WARN ");
+      const severity = item.severity === "error" ? chalk.red("  ERROR") : chalk.yellow("  WARN ");
       const file = item.file ? ` (${item.file})` : "";
       console.log(`    ${severity} [${item.type}] ${item.message}${file}`);
     }

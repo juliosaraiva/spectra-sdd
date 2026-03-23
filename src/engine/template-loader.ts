@@ -38,9 +38,7 @@ export function registerHelpers(): void {
 /**
  * Load a template file and compile it.
  */
-export async function loadTemplate(
-  templatePath: string
-): Promise<HandlebarsTemplateDelegate> {
+export async function loadTemplate(templatePath: string): Promise<HandlebarsTemplateDelegate> {
   if (templateCache.has(templatePath)) {
     return templateCache.get(templatePath)!;
   }
@@ -60,11 +58,7 @@ export async function loadTemplateById(
   templateId: string
 ): Promise<HandlebarsTemplateDelegate | null> {
   // Check project templates first
-  const projectTemplatePath = resolveSpectraPath(
-    projectRoot,
-    "templates",
-    `${templateId}.tmpl`
-  );
+  const projectTemplatePath = resolveSpectraPath(projectRoot, "templates", `${templateId}.tmpl`);
 
   try {
     return await loadTemplate(projectTemplatePath);
@@ -90,15 +84,11 @@ export async function loadTemplateById(
 /**
  * List available templates in the project.
  */
-export async function listTemplates(
-  projectRoot: string
-): Promise<string[]> {
+export async function listTemplates(projectRoot: string): Promise<string[]> {
   const templatesDir = resolveSpectraPath(projectRoot, "templates");
   try {
     const files = await readdir(templatesDir);
-    return files
-      .filter((f) => f.endsWith(".tmpl"))
-      .map((f) => basename(f, ".tmpl"));
+    return files.filter((f) => f.endsWith(".tmpl")).map((f) => basename(f, ".tmpl"));
   } catch {
     return [];
   }

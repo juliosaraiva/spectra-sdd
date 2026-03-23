@@ -53,11 +53,7 @@ export async function rebuildIndex(projectRoot: string): Promise<SpecIndex> {
     // Count test cases
     let testCount = 0;
     try {
-      const testPath = resolveSpectraPath(
-        projectRoot,
-        "tests",
-        `${featureName}.test.yaml`
-      );
+      const testPath = resolveSpectraPath(projectRoot, "tests", `${featureName}.test.yaml`);
       const testRaw = await readFile(testPath, "utf8");
       const testParsed = parse(testRaw);
       testCount = testParsed?.test_cases?.length ?? 0;
@@ -67,14 +63,16 @@ export async function rebuildIndex(projectRoot: string): Promise<SpecIndex> {
 
     const acCount = spec
       ? spec.acceptance_criteria.length
-      : (Array.isArray(parsed.acceptance_criteria) ? parsed.acceptance_criteria.length : 0);
+      : Array.isArray(parsed.acceptance_criteria)
+        ? parsed.acceptance_criteria.length
+        : 0;
 
     entries.push({
       id: specId,
       title: identity.title as string,
       status: ((spectra.status as string) ?? "draft") as IndexEntry["status"],
       semver: (spectra.semver as string) ?? "0.0.0",
-      domain: Array.isArray(identity.domain) ? identity.domain as string[] : [],
+      domain: Array.isArray(identity.domain) ? (identity.domain as string[]) : [],
       summary: (identity.summary as string) ?? "",
       ac_count: acCount,
       impl_count: implCount,

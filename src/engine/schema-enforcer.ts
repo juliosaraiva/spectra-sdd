@@ -1,5 +1,5 @@
 import { parse } from "yaml";
-import { type ZodType, ZodError } from "zod";
+import type { ZodType } from "zod";
 
 export interface EnforcementResult {
   valid: boolean;
@@ -12,10 +12,7 @@ export interface EnforcementResult {
  * Validates that a generated output string conforms to a Zod schema.
  * Attempts to parse as YAML first, then JSON.
  */
-export function enforceSchema(
-  output: string,
-  schema: ZodType
-): EnforcementResult {
+export function enforceSchema(output: string, schema: ZodType): EnforcementResult {
   let parsed: unknown;
 
   // Try YAML parsing first
@@ -43,9 +40,7 @@ export function enforceSchema(
   return {
     valid: false,
     parsed,
-    errors: result.error.issues.map(
-      (i) => `[${i.path.join(".")}] ${i.message}`
-    ),
+    errors: result.error.issues.map((i) => `[${i.path.join(".")}] ${i.message}`),
     attempts: 1,
   };
 }
@@ -58,7 +53,7 @@ export function enforceSchema(
 export function enforceWithRetry(
   output: string,
   schema: ZodType,
-  maxAttempts = 3
+  _maxAttempts = 3
 ): EnforcementResult {
   // Currently only validates once — retry logic requires AI adapter
   const result = enforceSchema(output, schema);

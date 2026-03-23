@@ -3,8 +3,7 @@ import chalk from "chalk";
 import { traceWhy, traceForward, computeCoverage } from "../../core/trace.js";
 import { rebuildIndex } from "../../core/index-builder.js";
 
-export const traceCommand = new Command("trace")
-  .description("Traceability matrix operations");
+export const traceCommand = new Command("trace").description("Traceability matrix operations");
 
 traceCommand
   .command("why <file>")
@@ -61,7 +60,8 @@ traceCommand
     if (gateEntries.length > 0) {
       console.log(`\n  Gates:`);
       for (const [phase, status] of gateEntries) {
-        const color = status === "approved" ? chalk.green : status === "expired" ? chalk.red : chalk.yellow;
+        const color =
+          status === "approved" ? chalk.green : status === "expired" ? chalk.red : chalk.yellow;
         console.log(`    ${phase.padEnd(15)} ${color(status)}`);
       }
     }

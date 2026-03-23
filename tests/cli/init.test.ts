@@ -89,9 +89,7 @@ describe("spectra init", () => {
       encoding: "utf8",
     });
 
-    const config = parse(
-      await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8")
-    );
+    const config = parse(await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8"));
     expect(config.ai_tools.adapter).toBe("none");
   });
 
@@ -101,9 +99,7 @@ describe("spectra init", () => {
       encoding: "utf8",
     });
 
-    const config = parse(
-      await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8")
-    );
+    const config = parse(await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8"));
     expect(config.ai_tools.adapter).toBe("claude-code");
   });
 
@@ -147,9 +143,7 @@ describe("spectra init", () => {
       encoding: "utf8",
     });
 
-    const config = parse(
-      await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8")
-    );
+    const config = parse(await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8"));
     expect(config.ai_tools.adapter).toBe("claude-code");
   });
 
@@ -166,9 +160,7 @@ describe("spectra init", () => {
 
     const globalClaudeDir = join(fakeHome, ".claude");
     for (const relPath of EXPECTED_SCAFFOLD_FILES) {
-      await expect(
-        access(join(globalClaudeDir, relPath))
-      ).resolves.toBeUndefined();
+      await expect(access(join(globalClaudeDir, relPath))).resolves.toBeUndefined();
     }
 
     // Local .claude should NOT have been created

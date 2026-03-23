@@ -2,7 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { FeatureSpecSchema, type FeatureSpec } from "./spec-types.js";
-import { contentHash, verifyHash } from "./hash.js";
+import { verifyHash } from "./hash.js";
 import { resolveSpectraPath } from "./config.js";
 import { loadConstitution } from "./constitution.js";
 
@@ -147,15 +147,12 @@ export function lintFeatureSpec(
   }
 
   // SPEC-007: At least one AC must be non_negotiable
-  const hasNonNegotiable = spec.acceptance_criteria.some(
-    (ac) => ac.non_negotiable
-  );
+  const hasNonNegotiable = spec.acceptance_criteria.some((ac) => ac.non_negotiable);
   if (!hasNonNegotiable) {
     results.push({
       rule: "SPEC-007",
       severity: "warning",
-      message:
-        "No acceptance criterion is marked non_negotiable. At least one should be.",
+      message: "No acceptance criterion is marked non_negotiable. At least one should be.",
       location: `${filePath}:acceptance_criteria`,
     });
   }
@@ -201,9 +198,7 @@ export async function lintAll(projectRoot: string): Promise<LintResult[]> {
       const parsed = parse(raw);
       const specResult = FeatureSpecSchema.safeParse(parsed);
       if (specResult.success) {
-        results.push(
-          ...lintFeatureSpec(specResult.data, filePath, vocabulary, parsed)
-        );
+        results.push(...lintFeatureSpec(specResult.data, filePath, vocabulary, parsed));
       }
     }
   } catch {
