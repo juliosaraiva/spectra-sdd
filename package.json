@@ -4,10 +4,11 @@
   "description": "SPECTRA — Spec-Templated Execution with Composable Traceability and Reconciliation Architecture",
   "type": "module",
   "bin": {
-    "spectra": "./dist/cli/index.js"
+    "spectra": "./dist/index.js"
   },
   "scripts": {
     "build": "tsup",
+    "prepare": "npm run build",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -34,7 +35,8 @@
   },
   "files": [
     "dist",
-    "templates"
+    "templates",
+    "scaffolds"
   ],
   "keywords": [
     "spec-driven-development",

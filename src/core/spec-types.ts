@@ -285,6 +285,15 @@ export const ConfigSchema = z.object({
     })
     .default({}),
   hooks: z.record(z.array(z.record(z.unknown()))).default({}),
+  ai_tools: z
+    .object({
+      adapter: z
+        .enum(["claude-code", "codex", "copilot", "opencode", "none"])
+        .default("none"),
+      enforcement: z.enum(["strict", "warn", "off"]).default("warn"),
+      skip_paths: z.array(z.string()).default([]),
+    })
+    .default({}),
 });
 export type Config = z.infer<typeof ConfigSchema>;
 

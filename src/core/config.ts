@@ -23,6 +23,11 @@ export const DEFAULT_CONFIG: Config = {
     trace_commit_hook: false,
   },
   hooks: {},
+  ai_tools: {
+    adapter: "none",
+    enforcement: "warn",
+    skip_paths: [],
+  },
 };
 
 export function spectraDir(projectRoot: string): string {
