@@ -18,7 +18,14 @@ declare const SPECTRA_VERSION: string | undefined;
 function getVersion(): string {
   if (typeof SPECTRA_VERSION !== "undefined") return SPECTRA_VERSION;
   const require = createRequire(import.meta.url);
-  return (require("../../package.json") as { version: string }).version;
+
+  // Try to resolve package.json relative to both built and source layouts
+  try {
+    return (require("../package.json") as { version: string }).version;
+  } catch {
+    // Fallback for running from src/cli/index.ts via tsx
+    return (require("../../package.json") as { version: string }).version;
+  }
 }
 
 const program = new Command();
