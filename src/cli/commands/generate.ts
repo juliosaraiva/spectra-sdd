@@ -1,15 +1,18 @@
 import { Command } from "commander";
 import chalk from "chalk";
 
-export const generateCommand = new Command("generate")
-  .description("Generate artifacts from specs (requires AI adapter)");
+export const generateCommand = new Command("generate").description(
+  "Generate artifacts from specs (requires AI adapter)"
+);
 
 generateCommand
   .command("tests <feat-id>")
   .description("Generate test spec from feature spec acceptance criteria")
   .action(async (featId: string) => {
     console.log(chalk.yellow("Generation engine requires an AI adapter."));
-    console.log(`Configure one in .spectra/config.yaml or use ${chalk.bold("spectra generate tests --template-only")} to render the prompt template.`);
+    console.log(
+      `Configure one in .spectra/config.yaml or use ${chalk.bold("spectra generate tests --template-only")} to render the prompt template.`
+    );
     console.log();
     console.log(chalk.blue("To generate test specs manually:"));
     console.log(`  1. Run: ${chalk.bold(`spectra context ${featId}`)}`);

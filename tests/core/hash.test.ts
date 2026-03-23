@@ -16,7 +16,12 @@ describe("canonicalize", () => {
   });
 
   it("handles arrays", () => {
-    const obj = { items: [{ z: 1, a: 2 }, { y: 3, b: 4 }] };
+    const obj = {
+      items: [
+        { z: 1, a: 2 },
+        { y: 3, b: 4 },
+      ],
+    };
     const result = JSON.parse(canonicalize(obj));
     expect(Object.keys(result.items[0])).toEqual(["a", "z"]);
     expect(Object.keys(result.items[1])).toEqual(["b", "y"]);
@@ -82,6 +87,8 @@ describe("verifyHash", () => {
 
   it("returns false for non-matching hash", () => {
     const obj = { name: "test" };
-    expect(verifyHash(obj, "sha256:0000000000000000000000000000000000000000000000000000000000000000")).toBe(false);
+    expect(
+      verifyHash(obj, "sha256:0000000000000000000000000000000000000000000000000000000000000000")
+    ).toBe(false);
   });
 });

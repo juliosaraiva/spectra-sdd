@@ -15,9 +15,7 @@ const program = new Command();
 
 program
   .name("spectra")
-  .description(
-    "SPECTRA — Spec-Driven Development with Composable Traceability and Reconciliation"
-  )
+  .description("SPECTRA — Spec-Driven Development with Composable Traceability and Reconciliation")
   .version("0.1.0");
 
 program.addCommand(initCommand);

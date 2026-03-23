@@ -20,9 +20,7 @@ export const lintCommand = new Command("lint")
       try {
         const indexRaw = await readFile(indexPath, "utf8");
         const index = parse(indexRaw);
-        const entry = index?.features?.find(
-          (f: { id: string }) => f.id === specId
-        );
+        const entry = index?.features?.find((f: { id: string }) => f.id === specId);
 
         if (!entry) {
           console.log(chalk.red(`Spec not found: ${specId}`));
@@ -68,15 +66,12 @@ function printLintResults(results: LintResult[]) {
   const warnings = results.filter((r) => r.severity === "warning");
 
   for (const r of results) {
-    const icon =
-      r.severity === "error" ? chalk.red("ERROR") : chalk.yellow("WARN ");
+    const icon = r.severity === "error" ? chalk.red("ERROR") : chalk.yellow("WARN ");
     const shortLoc = r.location.replace(process.cwd() + "/", "");
     console.log(`${icon} [${r.rule}] ${shortLoc}`);
     console.log(`       ${r.message}`);
   }
 
   console.log();
-  console.log(
-    `${errors.length} error(s), ${warnings.length} warning(s)`
-  );
+  console.log(`${errors.length} error(s), ${warnings.length} warning(s)`);
 }

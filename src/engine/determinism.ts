@@ -21,12 +21,7 @@ export async function auditDeterminism(
   target: string
 ): Promise<DeterminismResult> {
   // Read lock entry
-  const lockEntry = await readLockEntry(
-    projectRoot,
-    specId,
-    specVersion,
-    target
-  );
+  const lockEntry = await readLockEntry(projectRoot, specId, specVersion, target);
 
   if (!lockEntry) {
     return {

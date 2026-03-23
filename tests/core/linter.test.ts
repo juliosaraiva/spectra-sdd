@@ -171,10 +171,7 @@ describe("SPEC-008: Domain tags in vocabulary", () => {
 
   it("passes when all domain tags are in vocabulary", () => {
     const spec = makeSpec();
-    const results = lintFeatureSpec(spec, "test.yaml", [
-      "security",
-      "identity",
-    ]);
+    const results = lintFeatureSpec(spec, "test.yaml", ["security", "identity"]);
     const warnings = results.filter((r) => r.rule === "SPEC-008");
     expect(warnings).toHaveLength(0);
   });

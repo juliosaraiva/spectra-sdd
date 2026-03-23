@@ -8,26 +8,36 @@
   },
   "scripts": {
     "build": "tsup",
-    "prepare": "npm run build",
+    "prepare": "(husky || true) && npm run build",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "spectra": "tsx src/cli/index.ts"
   },
   "dependencies": {
+    "chalk": "^5.4.1",
     "commander": "^13.1.0",
     "handlebars": "^4.7.8",
     "yaml": "^2.7.1",
-    "zod": "^3.24.4",
-    "chalk": "^5.4.1"
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.39.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1",
     "tsup": "^8.4.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.57.1",
     "vitest": "^3.1.1"
   },
   "engines": {
@@ -46,5 +56,15 @@
     "traceability",
     "drift-detection"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "tests/**/*.ts": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ]
+  }
 }

@@ -1,7 +1,12 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { randomBytes } from "node:crypto";
 import { resolveSpectraPath } from "../core/config.js";
-import { GenerateLockSchema, type GenerateLock, type LockEntry, type ContentHash } from "../core/spec-types.js";
+import {
+  GenerateLockSchema,
+  type GenerateLock,
+  type LockEntry,
+  type ContentHash,
+} from "../core/spec-types.js";
 
 async function loadLock(projectRoot: string): Promise<GenerateLock> {
   const lockPath = resolveSpectraPath(projectRoot, "generate.lock");
@@ -13,10 +18,7 @@ async function loadLock(projectRoot: string): Promise<GenerateLock> {
   }
 }
 
-async function saveLock(
-  projectRoot: string,
-  lock: GenerateLock
-): Promise<void> {
+async function saveLock(projectRoot: string, lock: GenerateLock): Promise<void> {
   const lockPath = resolveSpectraPath(projectRoot, "generate.lock");
   await writeFile(lockPath, JSON.stringify(lock, null, 2));
 }
@@ -64,10 +66,7 @@ export async function isLocked(
 
   if (!entry) return false;
 
-  return (
-    entry.input_spec_hash === currentInputHash &&
-    entry.template_hash === currentTemplateHash
-  );
+  return entry.input_spec_hash === currentInputHash && entry.template_hash === currentTemplateHash;
 }
 
 export async function readLockEntry(

@@ -14,13 +14,15 @@ import { contentHash } from "../../core/hash.js";
 import { updateGateInTrace } from "../../core/trace.js";
 import type { Phase } from "../../core/spec-types.js";
 
-export const gateCommand = new Command("gate")
-  .description("Manage human review gates");
+export const gateCommand = new Command("gate").description("Manage human review gates");
 
 gateCommand
   .command("sign <spec-id>")
   .description("Sign a gate approval for a spec phase")
-  .requiredOption("--phase <phase>", "Phase to sign (specify, design, test-design, implement, reconcile)")
+  .requiredOption(
+    "--phase <phase>",
+    "Phase to sign (specify, design, test-design, implement, reconcile)"
+  )
   .option("--signer <signer>", "Signer identity", `@${process.env.USER ?? "user"}`)
   .option("--comment <comment>", "Approval comment")
   .action(async (specId: string, opts) => {
@@ -30,9 +32,7 @@ gateCommand
     const indexPath = resolveSpectraPath(projectRoot, "features", "_index.yaml");
     const indexRaw = await readFile(indexPath, "utf8");
     const index = parse(indexRaw);
-    const entry = index?.features?.find(
-      (f: { id: string }) => f.id === specId
-    );
+    const entry = index?.features?.find((f: { id: string }) => f.id === specId);
 
     if (!entry) {
       console.log(chalk.red(`Spec not found: ${specId}`));
@@ -57,7 +57,9 @@ gateCommand
 
     await updateGateInTrace(projectRoot, specId, opts.phase, "approved");
 
-    console.log(chalk.green(`Gate signed for ${chalk.bold(specId)} phase ${chalk.bold(opts.phase)}`));
+    console.log(
+      chalk.green(`Gate signed for ${chalk.bold(specId)} phase ${chalk.bold(opts.phase)}`)
+    );
     console.log(`  Signer: ${gate.approval?.approved_by}`);
     console.log(`  Hash:   ${hash}`);
     if (opts.comment) console.log(`  Comment: ${opts.comment}`);
@@ -72,9 +74,7 @@ gateCommand
 
     // Get signed phases
     const gates = await listGates(projectRoot, specId);
-    const signedPhases = gates
-      .filter((g) => g.gate.status === "approved")
-      .map((g) => g.gate.phase);
+    const signedPhases = gates.filter((g) => g.gate.status === "approved").map((g) => g.gate.phase);
 
     const readiness = checkPhaseReady(opts.phase as Phase, signedPhases);
 
@@ -138,9 +138,7 @@ gateCommand
     const indexPath = resolveSpectraPath(projectRoot, "features", "_index.yaml");
     const indexRaw = await readFile(indexPath, "utf8");
     const index = parse(indexRaw);
-    const entry = index?.features?.find(
-      (f: { id: string }) => f.id === specId
-    );
+    const entry = index?.features?.find((f: { id: string }) => f.id === specId);
 
     if (!entry) {
       console.log(chalk.red(`Spec not found: ${specId}`));
