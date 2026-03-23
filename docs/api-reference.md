@@ -239,7 +239,3 @@ Re-runs generation with `force: true`, compares output hash against lock. Return
 ### `enforceSchema(output: string, schema: ZodType): EnforcementResult`
 
 *Synchronous.* Tries YAML parse, then JSON parse, validates against Zod schema. Returns `{ valid, parsed?, errors?, attempts }`.
-
-### `enforceWithRetry(output, schema, maxAttempts?): EnforcementResult`
-
-Currently single-attempt (retry logic awaits AI adapter). Default maxAttempts: 3.

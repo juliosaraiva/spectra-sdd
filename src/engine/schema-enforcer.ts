@@ -44,19 +44,3 @@ export function enforceSchema(output: string, schema: ZodType): EnforcementResul
     attempts: 1,
   };
 }
-
-/**
- * Attempts to enforce schema with retries.
- * In practice, retries would re-invoke the AI adapter.
- * For now, validates the single output.
- */
-export function enforceWithRetry(
-  output: string,
-  schema: ZodType,
-  _maxAttempts = 3
-): EnforcementResult {
-  // Currently only validates once — retry logic requires AI adapter
-  const result = enforceSchema(output, schema);
-  result.attempts = 1;
-  return result;
-}

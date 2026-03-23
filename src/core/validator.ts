@@ -1,8 +1,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { parse } from "yaml";
-import type { ZodError } from "zod";
-import { type ZodType } from "zod";
+import type { ZodError, ZodType } from "zod";
 import {
   FeatureSpecSchema,
   ImplSpecSchema,
