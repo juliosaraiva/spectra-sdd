@@ -1,7 +1,8 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { parse } from "yaml";
-import { ZodError, type ZodType } from "zod";
+import type { ZodError } from "zod";
+import { type ZodType } from "zod";
 import {
   FeatureSpecSchema,
   ImplSpecSchema,
@@ -32,9 +33,7 @@ function zodToErrors(file: string, err: ZodError): ValidationError[] {
   }));
 }
 
-function detectSpecType(
-  parsed: Record<string, unknown>
-): string | null {
+function detectSpecType(parsed: Record<string, unknown>): string | null {
   const spectra = parsed.spectra as Record<string, unknown> | undefined;
   if (!spectra?.type) {
     // Check if it's a constitution (no spectra.type wrapper in our schema)
@@ -106,9 +105,7 @@ export async function validateSpec(filePath: string): Promise<ValidationResult> 
   };
 }
 
-export async function validateAll(
-  projectRoot: string
-): Promise<ValidationResult[]> {
+export async function validateAll(projectRoot: string): Promise<ValidationResult[]> {
   const results: ValidationResult[] = [];
 
   // Validate constitution
@@ -124,8 +121,7 @@ export async function validateAll(
     const featDir = resolveSpectraPath(projectRoot, "features");
     const files = await readdir(featDir);
     for (const f of files) {
-      if (f.startsWith("_") || (!f.endsWith(".spec.yaml") && !f.endsWith(".spec.yml")))
-        continue;
+      if (f.startsWith("_") || (!f.endsWith(".spec.yaml") && !f.endsWith(".spec.yml"))) continue;
       results.push(await validateSpec(join(featDir, f)));
     }
   } catch {
@@ -156,9 +152,7 @@ export async function validateAll(
   return results;
 }
 
-export async function validateCrossRefs(
-  projectRoot: string
-): Promise<ValidationResult[]> {
+export async function validateCrossRefs(projectRoot: string): Promise<ValidationResult[]> {
   const results: ValidationResult[] = [];
 
   // Load all feature spec IDs

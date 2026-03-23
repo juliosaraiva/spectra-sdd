@@ -5,8 +5,16 @@ export default defineConfig({
     globals: true,
     include: ["tests/**/*.test.ts"],
     coverage: {
+      provider: "v8",
       include: ["src/**/*.ts"],
       exclude: ["src/cli/index.ts"],
+      reporter: ["text", "lcov", "json"],
+      thresholds: {
+        lines: 20,
+        branches: 55,
+        functions: 25,
+        statements: 20,
+      },
     },
   },
   resolve: {

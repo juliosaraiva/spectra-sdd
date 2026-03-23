@@ -1,6 +1,5 @@
 import { Command } from "commander";
 import { readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { stringify, parse } from "yaml";
 import chalk from "chalk";
 import { resolveSpectraPath } from "../../core/config.js";
@@ -61,8 +60,7 @@ function featureTemplate(name: string, idPrefix: string): FeatureSpec {
   };
 }
 
-export const specCommand = new Command("spec")
-  .description("Manage feature specifications");
+export const specCommand = new Command("spec").description("Manage feature specifications");
 
 specCommand
   .command("new <name>")
@@ -84,7 +82,9 @@ specCommand
     console.log(`  1. Edit the spec: ${chalk.bold(`spectra spec edit ${spec.spectra.id}`)}`);
     console.log(`  2. Validate: ${chalk.bold(`spectra validate ${spec.spectra.id}`)}`);
     console.log(`  3. Lint: ${chalk.bold(`spectra lint ${spec.spectra.id}`)}`);
-    console.log(`  4. Sign gate: ${chalk.bold(`spectra gate sign ${spec.spectra.id} --phase specify`)}`);
+    console.log(
+      `  4. Sign gate: ${chalk.bold(`spectra gate sign ${spec.spectra.id} --phase specify`)}`
+    );
   });
 
 specCommand
@@ -138,9 +138,7 @@ specCommand
     try {
       const indexRaw = await readFile(indexPath, "utf8");
       const index = parse(indexRaw);
-      const entry = index?.features?.find(
-        (f: { id: string }) => f.id === id
-      );
+      const entry = index?.features?.find((f: { id: string }) => f.id === id);
 
       if (!entry) {
         console.log(chalk.red(`Spec not found: ${id}`));
@@ -165,9 +163,7 @@ specCommand
     try {
       const indexRaw = await readFile(indexPath, "utf8");
       const index = parse(indexRaw);
-      const entry = index?.features?.find(
-        (f: { id: string }) => f.id === id
-      );
+      const entry = index?.features?.find((f: { id: string }) => f.id === id);
 
       if (!entry) {
         console.log(chalk.red(`Spec not found: ${id}`));

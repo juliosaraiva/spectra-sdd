@@ -1,13 +1,12 @@
 import { Command } from "commander";
 import chalk from "chalk";
 
-export const auditCommand = new Command("audit")
-  .description("Audit framework properties");
+export const auditCommand = new Command("audit").description("Audit framework properties");
 
 auditCommand
   .command("determinism <feat-id>")
   .description("Verify generation determinism by re-running and comparing hashes")
-  .action(async (featId: string) => {
+  .action(async (_featId: string) => {
     console.log(chalk.yellow("Determinism audit requires an AI adapter and a locked generation."));
     console.log("Configure an AI adapter in .spectra/config.yaml");
     console.log();

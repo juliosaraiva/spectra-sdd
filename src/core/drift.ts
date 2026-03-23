@@ -25,8 +25,7 @@ export interface DriftReport {
   >;
 }
 
-const TRACE_COMMENT_REGEX =
-  /\/\/\s*@spectra\s+([\w:@.\-]+)\s*(impl:[\w.\-@]+)?\s*(gen:[\w]+)?/g;
+const TRACE_COMMENT_REGEX = /\/\/\s*@spectra\s+([\w:@.\-]+)\s*(impl:[\w.\-@]+)?\s*(gen:[\w]+)?/g;
 
 /**
  * Scans source files for @spectra trace comments and compares
@@ -50,10 +49,7 @@ export async function detectStructuralDrift(
 
   // Check for active specs with no authorized artifacts
   for (const [specId, entry] of Object.entries(trace.specs)) {
-    if (
-      entry.status === "active" &&
-      entry.authorized_artifacts.length === 0
-    ) {
+    if (entry.status === "active" && entry.authorized_artifacts.length === 0) {
       items.push({
         type: "structural",
         severity: "warning",
@@ -118,9 +114,7 @@ async function scanDirectory(
         }
 
         // Check if file is in authorized artifacts
-        const isAuthorized = traceEntry.authorized_artifacts.some(
-          (a) => a.path === relativePath
-        );
+        const isAuthorized = traceEntry.authorized_artifacts.some((a) => a.path === relativePath);
         if (!isAuthorized) {
           items.push({
             type: "structural",
@@ -138,9 +132,7 @@ async function scanDirectory(
 /**
  * Detects semantic drift by checking test coverage against acceptance criteria.
  */
-export function detectSemanticDrift(
-  trace: Awaited<ReturnType<typeof loadTrace>>
-): DriftItem[] {
+export function detectSemanticDrift(trace: Awaited<ReturnType<typeof loadTrace>>): DriftItem[] {
   const items: DriftItem[] = [];
 
   for (const [specId, entry] of Object.entries(trace.specs)) {
@@ -198,9 +190,7 @@ export function computeDriftScore(items: DriftItem[]): number {
   return Math.min(1, Math.round(raw * 100) / 100);
 }
 
-export async function generateDriftReport(
-  projectRoot: string
-): Promise<DriftReport> {
+export async function generateDriftReport(projectRoot: string): Promise<DriftReport> {
   const trace = await loadTrace(projectRoot);
 
   const structural = await detectStructuralDrift(projectRoot);

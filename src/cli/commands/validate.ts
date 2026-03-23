@@ -19,9 +19,7 @@ export const validateCommand = new Command("validate")
       try {
         const indexRaw = await readFile(indexPath, "utf8");
         const index = parse(indexRaw);
-        const entry = index?.features?.find(
-          (f: { id: string }) => f.id === specId
-        );
+        const entry = index?.features?.find((f: { id: string }) => f.id === specId);
 
         if (!entry) {
           console.log(chalk.red(`Spec not found: ${specId}`));
@@ -60,7 +58,11 @@ export const validateCommand = new Command("validate")
     }
   });
 
-function printResult(result: { file: string; valid: boolean; errors: Array<{ path: string; message: string; severity: string }> }) {
+function printResult(result: {
+  file: string;
+  valid: boolean;
+  errors: Array<{ path: string; message: string; severity: string }>;
+}) {
   const shortFile = result.file.replace(process.cwd() + "/", "");
   if (result.valid) {
     console.log(`${chalk.green("PASS")} ${shortFile}`);

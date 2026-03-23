@@ -81,15 +81,9 @@ describe("computeDriftScore", () => {
   });
 
   it("returns higher score for errors than warnings", () => {
-    const warnings: DriftItem[] = [
-      { type: "structural", severity: "warning", message: "test" },
-    ];
-    const errors: DriftItem[] = [
-      { type: "structural", severity: "error", message: "test" },
-    ];
-    expect(computeDriftScore(errors)).toBeGreaterThan(
-      computeDriftScore(warnings)
-    );
+    const warnings: DriftItem[] = [{ type: "structural", severity: "warning", message: "test" }];
+    const errors: DriftItem[] = [{ type: "structural", severity: "error", message: "test" }];
+    expect(computeDriftScore(errors)).toBeGreaterThan(computeDriftScore(warnings));
   });
 
   it("is bounded between 0 and 1", () => {

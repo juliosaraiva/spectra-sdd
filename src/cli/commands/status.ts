@@ -3,9 +3,8 @@ import { readFile } from "node:fs/promises";
 import { parse } from "yaml";
 import chalk from "chalk";
 import { resolveSpectraPath } from "../../core/config.js";
-import { traceForward, computeCoverage } from "../../core/trace.js";
+import { computeCoverage } from "../../core/trace.js";
 import { listGates } from "../../core/gate.js";
-import { contentHash } from "../../core/hash.js";
 
 export const statusCommand = new Command("status")
   .description("Show spec health status")
@@ -26,9 +25,7 @@ async function showSpecStatus(projectRoot: string, specId: string) {
   try {
     const indexRaw = await readFile(indexPath, "utf8");
     const index = parse(indexRaw);
-    const entry = index?.features?.find(
-      (f: { id: string }) => f.id === specId
-    );
+    const entry = index?.features?.find((f: { id: string }) => f.id === specId);
 
     if (!entry) {
       console.log(chalk.red(`Spec not found: ${specId}`));
@@ -62,7 +59,9 @@ async function showSpecStatus(projectRoot: string, specId: string) {
     // Coverage
     const coverage = await computeCoverage(projectRoot, specId);
     if (coverage) {
-      console.log(`\n  AC Coverage: ${coverage.coverage_percent}% (${coverage.covered_acs}/${coverage.total_acs})`);
+      console.log(
+        `\n  AC Coverage: ${coverage.coverage_percent}% (${coverage.covered_acs}/${coverage.total_acs})`
+      );
     }
 
     console.log();
@@ -96,7 +95,9 @@ async function showProjectStatus(projectRoot: string) {
     const pending = gates.filter((g) => g.gate.status === "pending").length;
     const expired = gates.filter((g) => g.gate.status === "expired").length;
 
-    console.log(`\n  Gates: ${gates.length} total (${approved} approved, ${pending} pending, ${expired} expired)`);
+    console.log(
+      `\n  Gates: ${gates.length} total (${approved} approved, ${pending} pending, ${expired} expired)`
+    );
     console.log();
   } catch {
     console.log(chalk.yellow("SPECTRA not initialized. Run: spectra init"));

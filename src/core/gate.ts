@@ -1,13 +1,7 @@
-import { readFile, writeFile, readdir, unlink } from "node:fs/promises";
+import { readFile, writeFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { parse, stringify } from "yaml";
-import {
-  GateSchema,
-  type Gate,
-  type Phase,
-  PHASE_ORDER,
-  type ContentHash,
-} from "./spec-types.js";
+import { GateSchema, type Gate, type Phase, PHASE_ORDER, type ContentHash } from "./spec-types.js";
 import { resolveSpectraPath } from "./config.js";
 
 function gateFileName(specId: string, specSemver: string, phase: Phase): string {
@@ -105,9 +99,7 @@ export async function verifyGate(
   }
 
   const safeId = specId.replace(/:/g, "_");
-  const matching = files.filter(
-    (f) => f.startsWith(safeId) && f.includes(`--${phase}.gate.yaml`)
-  );
+  const matching = files.filter((f) => f.startsWith(safeId) && f.includes(`--${phase}.gate.yaml`));
 
   if (matching.length === 0) {
     return { valid: false, gate: null, reason: `No gate found for ${specId} phase ${phase}` };
@@ -141,10 +133,7 @@ export async function verifyGate(
   return { valid: true, gate };
 }
 
-export async function expireGatesForSpec(
-  projectRoot: string,
-  specId: string
-): Promise<number> {
+export async function expireGatesForSpec(projectRoot: string, specId: string): Promise<number> {
   const gatesDir = resolveSpectraPath(projectRoot, "gates");
   let expired = 0;
 
@@ -176,10 +165,7 @@ export async function expireGatesForSpec(
   return expired;
 }
 
-export async function listGates(
-  projectRoot: string,
-  specId?: string
-): Promise<Gate[]> {
+export async function listGates(projectRoot: string, specId?: string): Promise<Gate[]> {
   const gatesDir = resolveSpectraPath(projectRoot, "gates");
   const gates: Gate[] = [];
 
@@ -211,10 +197,7 @@ export interface PhaseReadiness {
   missing: Phase[];
 }
 
-export function checkPhaseReady(
-  targetPhase: Phase,
-  signedPhases: Phase[]
-): PhaseReadiness {
+export function checkPhaseReady(targetPhase: Phase, signedPhases: Phase[]): PhaseReadiness {
   const targetIndex = PHASE_ORDER.indexOf(targetPhase);
   const missing: Phase[] = [];
 

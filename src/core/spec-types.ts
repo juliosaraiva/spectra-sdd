@@ -14,33 +14,15 @@ export type ContentHash = z.infer<typeof ContentHash>;
 
 // ─── Spec Status ─────────────────────────────────────────────────────────────
 
-export const SpecStatus = z.enum([
-  "draft",
-  "review",
-  "active",
-  "deprecated",
-  "archived",
-]);
+export const SpecStatus = z.enum(["draft", "review", "active", "deprecated", "archived"]);
 export type SpecStatus = z.infer<typeof SpecStatus>;
 
 // ─── Phase ───────────────────────────────────────────────────────────────────
 
-export const Phase = z.enum([
-  "specify",
-  "design",
-  "test-design",
-  "implement",
-  "reconcile",
-]);
+export const Phase = z.enum(["specify", "design", "test-design", "implement", "reconcile"]);
 export type Phase = z.infer<typeof Phase>;
 
-export const PHASE_ORDER: Phase[] = [
-  "specify",
-  "design",
-  "test-design",
-  "implement",
-  "reconcile",
-];
+export const PHASE_ORDER: Phase[] = ["specify", "design", "test-design", "implement", "reconcile"];
 
 // ─── Acceptance Criterion ────────────────────────────────────────────────────
 
@@ -287,9 +269,7 @@ export const ConfigSchema = z.object({
   hooks: z.record(z.array(z.record(z.unknown()))).default({}),
   ai_tools: z
     .object({
-      adapter: z
-        .enum(["claude-code", "codex", "copilot", "opencode", "none"])
-        .default("none"),
+      adapter: z.enum(["claude-code", "codex", "copilot", "opencode", "none"]).default("none"),
       enforcement: z.enum(["strict", "warn", "off"]).default("warn"),
       skip_paths: z.array(z.string()).default([]),
     })

@@ -48,9 +48,6 @@ export async function loadConfig(projectRoot: string): Promise<Config> {
   }
 }
 
-export function resolveSpectraPath(
-  projectRoot: string,
-  ...segments: string[]
-): string {
+export function resolveSpectraPath(projectRoot: string, ...segments: string[]): string {
   return join(spectraDir(projectRoot), ...segments);
 }

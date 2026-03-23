@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -23,14 +23,7 @@ beforeEach(async () => {
 
 describe("signGate", () => {
   it("creates a signed gate file", async () => {
-    const gate = await signGate(
-      TEST_DIR,
-      "feat:test",
-      "1.0.0",
-      HASH,
-      "specify",
-      "@user"
-    );
+    const gate = await signGate(TEST_DIR, "feat:test", "1.0.0", HASH, "specify", "@user");
     expect(gate.gate.status).toBe("approved");
     expect(gate.approval?.approved_by).toBe("@user");
     expect(gate.approval?.method).toBe("cli");

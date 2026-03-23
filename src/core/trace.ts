@@ -1,5 +1,4 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { parse, stringify } from "yaml";
 import {
   TraceMatrixSchema,
   type TraceMatrix,
@@ -39,10 +38,7 @@ async function loadTrace(projectRoot: string): Promise<TraceMatrix> {
   }
 }
 
-async function saveTrace(
-  projectRoot: string,
-  trace: TraceMatrix
-): Promise<void> {
+async function saveTrace(projectRoot: string, trace: TraceMatrix): Promise<void> {
   const tracePath = resolveSpectraPath(projectRoot, "trace.json");
   trace.updated_at = new Date().toISOString();
   await writeFile(tracePath, JSON.stringify(trace, null, 2));
@@ -138,8 +134,7 @@ export async function computeCoverage(
     spec_id: specId,
     total_acs: acIds.length,
     covered_acs: covered.length,
-    coverage_percent:
-      acIds.length > 0 ? Math.round((covered.length / acIds.length) * 100) : 0,
+    coverage_percent: acIds.length > 0 ? Math.round((covered.length / acIds.length) * 100) : 0,
     uncovered,
   };
 }

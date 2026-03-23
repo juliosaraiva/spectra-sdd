@@ -40,9 +40,6 @@ export function contentHash(obj: Record<string, unknown>): string {
 /**
  * Verifies that an object's content hash matches the expected value.
  */
-export function verifyHash(
-  obj: Record<string, unknown>,
-  expected: string
-): boolean {
+export function verifyHash(obj: Record<string, unknown>, expected: string): boolean {
   return contentHash(obj) === expected;
 }

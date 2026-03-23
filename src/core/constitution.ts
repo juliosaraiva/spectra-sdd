@@ -1,16 +1,10 @@
-import { readFile, writeFile, appendFile } from "node:fs/promises";
+import { readFile, appendFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse, stringify } from "yaml";
-import {
-  ConstitutionSchema,
-  type Constitution,
-  type Constraint,
-} from "./spec-types.js";
+import { ConstitutionSchema, type Constitution, type Constraint } from "./spec-types.js";
 import { spectraDir } from "./config.js";
 
-export async function loadConstitution(
-  projectRoot: string
-): Promise<Constitution> {
+export async function loadConstitution(projectRoot: string): Promise<Constitution> {
   const path = join(spectraDir(projectRoot), "constitution.yaml");
   const raw = await readFile(path, "utf8");
   const parsed = parse(raw);
@@ -33,11 +27,7 @@ export function selectConstraints(
     const overlap = constraint.domain.filter((d) => tagSet.has(d)).length;
     // MUST constraints get priority boost
     const enforcementBoost =
-      constraint.enforcement === "MUST"
-        ? 2
-        : constraint.enforcement === "SHOULD"
-          ? 1
-          : 0;
+      constraint.enforcement === "MUST" ? 2 : constraint.enforcement === "SHOULD" ? 1 : 0;
     return { constraint, score: overlap + enforcementBoost };
   });
 
@@ -64,9 +54,7 @@ export function validateAgainstConstitution(
     if (ac.constitution_constraints) {
       for (const ref of ac.constitution_constraints) {
         if (!constraintIds.has(ref)) {
-          violations.push(
-            `${ac.id}: references unknown constitutional constraint "${ref}"`
-          );
+          violations.push(`${ac.id}: references unknown constitutional constraint "${ref}"`);
         }
       }
     }
@@ -89,10 +77,7 @@ export async function amendConstitution(
     new_hash: string;
   }
 ): Promise<void> {
-  const changelogPath = join(
-    spectraDir(projectRoot),
-    "constitution.changelog"
-  );
+  const changelogPath = join(spectraDir(projectRoot), "constitution.changelog");
   const entry = `${new Date().toISOString()} | ${amendment.action} | ${amendment.author} | ${amendment.description} | prev:${amendment.prev_hash} | new:${amendment.new_hash} | approved_by:${amendment.approved_by.join(",")}\n`;
   await appendFile(changelogPath, entry);
 }
@@ -140,13 +125,7 @@ export function defaultConstitution(): Constitution {
         title: "Single responsibility per module",
         description:
           "Each module, class, or function should have one clear responsibility. Avoid god objects and mixed concerns.",
-        domain: [
-          "architecture",
-          "persistence",
-          "transport",
-          "identity",
-          "observability",
-        ],
+        domain: ["architecture", "persistence", "transport", "identity", "observability"],
         enforcement: "SHOULD",
       },
       {

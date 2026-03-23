@@ -1,12 +1,5 @@
 import { Command } from "commander";
-import {
-  mkdir,
-  writeFile,
-  access,
-  readdir,
-  copyFile,
-  chmod,
-} from "node:fs/promises";
+import { mkdir, writeFile, access, readdir, copyFile, chmod } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -31,7 +24,7 @@ async function findScaffoldsDir(): Promise<string | null> {
   // Works from both dist/index.js (production) and src/cli/commands/init.ts (dev via tsx).
   const base = fileURLToPath(new URL(".", import.meta.url));
   const candidates = [
-    join(base, "..", "scaffolds"),         // from dist/
+    join(base, "..", "scaffolds"), // from dist/
     join(base, "..", "..", "..", "scaffolds"), // from src/cli/commands/
   ];
   for (const candidate of candidates) {
@@ -45,10 +38,7 @@ async function findScaffoldsDir(): Promise<string | null> {
   return null;
 }
 
-async function copyScaffolds(
-  src: string,
-  dest: string
-): Promise<string[]> {
+async function copyScaffolds(src: string, dest: string): Promise<string[]> {
   const copied: string[] = [];
 
   async function copyRecursive(srcDir: string, destDir: string) {
@@ -66,7 +56,7 @@ async function copyScaffolds(
         try {
           await access(destPath);
           continue;
-        } catch (err: any) {
+        } catch (err: unknown) {
           // Only treat ENOENT ("file not found") as safe to copy; rethrow others
           if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
             throw err;
@@ -155,18 +145,12 @@ export const initCommand = new Command("init")
       ...DEFAULT_CONFIG,
       spectra: { ...DEFAULT_CONFIG.spectra, project_id: opts.projectId },
     };
-    await writeFile(
-      join(spectraDir, "config.yaml"),
-      stringify(config, { lineWidth: 120 })
-    );
+    await writeFile(join(spectraDir, "config.yaml"), stringify(config, { lineWidth: 120 }));
 
     // Write constitution
     if (!opts.brownfield) {
       const constitution = defaultConstitution();
-      await writeFile(
-        join(spectraDir, "constitution.yaml"),
-        constitutionToYaml(constitution)
-      );
+      await writeFile(join(spectraDir, "constitution.yaml"), constitutionToYaml(constitution));
       await writeFile(
         join(spectraDir, "constitution.changelog"),
         `${new Date().toISOString()} | INIT | @${process.env.USER ?? "user"} | Initial constitution v1.0.0 created\n`
@@ -175,10 +159,7 @@ export const initCommand = new Command("init")
       // Brownfield: minimal constitution placeholder
       const constitution = defaultConstitution();
       constitution.spectra.semver = "0.1.0";
-      await writeFile(
-        join(spectraDir, "constitution.yaml"),
-        constitutionToYaml(constitution)
-      );
+      await writeFile(join(spectraDir, "constitution.yaml"), constitutionToYaml(constitution));
       await writeFile(
         join(spectraDir, "constitution.changelog"),
         `${new Date().toISOString()} | INIT | @${process.env.USER ?? "user"} | Brownfield initialization — constitution is provisional\n`
@@ -204,10 +185,7 @@ export const initCommand = new Command("init")
       updated_at: new Date().toISOString(),
       specs: {},
     };
-    await writeFile(
-      join(spectraDir, "trace.json"),
-      JSON.stringify(emptyTrace, null, 2)
-    );
+    await writeFile(join(spectraDir, "trace.json"), JSON.stringify(emptyTrace, null, 2));
 
     // Write empty generate lock
     await writeFile(join(spectraDir, "generate.lock"), JSON.stringify({}, null, 2));
@@ -247,15 +225,16 @@ export const initCommand = new Command("init")
 
         // Update config with the confirmed adapter after successful scaffold copy
         config.ai_tools = { ...config.ai_tools, adapter: "claude-code" };
-        await writeFile(
-          join(spectraDir, "config.yaml"),
-          stringify(config, { lineWidth: 120 })
-        );
+        await writeFile(join(spectraDir, "config.yaml"), stringify(config, { lineWidth: 120 }));
 
         console.log();
         console.log(chalk.green(`Claude Code integration configured (${copied.length} files):`));
-        console.log(`  ${chalk.cyan("skills/")}     — SDD workflow phases: /spectra-setup, /spectra-specify, /spectra-design, ...`);
-        console.log(`  ${chalk.cyan("commands/")}   — Operational tools: /spectra-status, /spectra-validate, /spectra-lint, ...`);
+        console.log(
+          `  ${chalk.cyan("skills/")}     — SDD workflow phases: /spectra-setup, /spectra-specify, /spectra-design, ...`
+        );
+        console.log(
+          `  ${chalk.cyan("commands/")}   — Operational tools: /spectra-status, /spectra-validate, /spectra-lint, ...`
+        );
         console.log(`  ${chalk.cyan("agents/")}     — Spec reviewer agent`);
         console.log(`  ${chalk.cyan("hooks/")}      — Enforcement + drift detection`);
         console.log(`  ${chalk.cyan("rules/")}      — Spec editing + code generation rules`);
@@ -263,16 +242,22 @@ export const initCommand = new Command("init")
 
         const enforcementLevel = config.ai_tools.enforcement;
         console.log();
-        console.log(`  Enforcement: ${chalk.bold(enforcementLevel)} (change in .spectra/config.yaml → ai_tools.enforcement)`);
+        console.log(
+          `  Enforcement: ${chalk.bold(enforcementLevel)} (change in .spectra/config.yaml → ai_tools.enforcement)`
+        );
       } catch {
         console.log();
         console.log(chalk.yellow("Claude Code scaffolds not found. Skipping AI tool setup."));
       }
     } else if (!aiTool) {
       console.log();
-      console.log(chalk.dim("No AI tool detected. Use --claude to set up Claude Code integration."));
+      console.log(
+        chalk.dim("No AI tool detected. Use --claude to set up Claude Code integration.")
+      );
     }
 
     console.log();
-    console.log(`Next: ${chalk.bold("spectra spec new <name>")} to create your first feature spec.`);
+    console.log(
+      `Next: ${chalk.bold("spectra spec new <name>")} to create your first feature spec.`
+    );
   });
