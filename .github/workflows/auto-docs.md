@@ -8,7 +8,7 @@ permissions:
   contents: read
   pull-requests: read
 
-engine: claude
+engine: copilot
 
 network: defaults
 
