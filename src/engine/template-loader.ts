@@ -67,18 +67,51 @@ export async function loadTemplateById(
   }
 
   // Built-in templates bundled with the package
-  const builtinPath = join(
-    new URL(".", import.meta.url).pathname,
-    "..",
-    "templates",
-    `${templateId}.tmpl`
-  );
+  const base = new URL(".", import.meta.url).pathname;
+  const candidates = [
+    join(base, "..", "templates", `${templateId}.tmpl`), // from dist/ (production)
+    join(base, "..", "..", "templates", `${templateId}.tmpl`), // from src/engine/ (dev)
+  ];
 
-  try {
-    return await loadTemplate(builtinPath);
-  } catch {
-    return null;
+  for (const candidate of candidates) {
+    try {
+      return await loadTemplate(candidate);
+    } catch {
+      // try next candidate
+    }
   }
+  return null;
+}
+
+/**
+ * Load raw template content by ID (for hashing).
+ */
+export async function loadTemplateRaw(
+  projectRoot: string,
+  templateId: string
+): Promise<string | null> {
+  // Check project templates first
+  const projectTemplatePath = resolveSpectraPath(projectRoot, "templates", `${templateId}.tmpl`);
+  try {
+    return await readFile(projectTemplatePath, "utf8");
+  } catch {
+    // Not found in project — try built-in
+  }
+
+  const base = new URL(".", import.meta.url).pathname;
+  const candidates = [
+    join(base, "..", "templates", `${templateId}.tmpl`),
+    join(base, "..", "..", "templates", `${templateId}.tmpl`),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      return await readFile(candidate, "utf8");
+    } catch {
+      // try next
+    }
+  }
+  return null;
 }
 
 /**
