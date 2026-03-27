@@ -264,6 +264,10 @@ Compiles and caches a Handlebars template file.
 
 Resolution: project-local `.spectra/templates/<id>.tmpl` first, then built-in `templates/<id>.tmpl`. Returns null if not found.
 
+### `loadTemplateRaw(projectRoot, templateId): Promise<string | null>`
+
+Loads the raw template content (string) by ID without compiling. Uses the same resolution order as `loadTemplateById`. Returns null if not found. Used for computing template hashes.
+
 ### `listTemplates(projectRoot): Promise<string[]>`
 
 Lists `.tmpl` files in `.spectra/templates/`, returns basenames without extension.
