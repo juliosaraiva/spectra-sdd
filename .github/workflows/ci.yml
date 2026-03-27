@@ -54,6 +54,9 @@ jobs:
   security:
     name: Security Gate
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
 
     steps:
       - name: Checkout
