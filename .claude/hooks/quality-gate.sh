@@ -110,17 +110,27 @@ case "$MODE" in
     fi
     # Fallback: exclude vulns in npm bundled deps (unfixable upstream)
     # Uses node instead of jq to avoid requiring jq installation
+    # Logic matches CI: exclude a vuln if ANY of its nodes are under node_modules/npm/
     AUDIT_JSON=$( npm audit --json 2>/dev/null || true )
     HIGH_COUNT=$( echo "$AUDIT_JSON" | node -e "
       const fs = require('fs');
-      const data = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
-      const vulns = data.vulnerabilities || {};
-      const count = Object.values(vulns).filter(v =>
-        (v.severity === 'high' || v.severity === 'critical') &&
-        !(v.nodes || []).every(n => n.startsWith('node_modules/npm/'))
-      ).length;
-      console.log(count);
-    " 2>/dev/null || echo "0" )
+      try {
+        const data = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+        const vulns = data.vulnerabilities || {};
+        const count = Object.values(vulns).filter(v =>
+          (v.severity === 'high' || v.severity === 'critical') &&
+          !(v.nodes || []).some(n => n.startsWith('node_modules/npm/'))
+        ).length;
+        console.log(count);
+      } catch (e) {
+        console.error('⚠ Failed to parse npm audit JSON:', e.message);
+        process.exit(1);
+      }
+    " )
+    if [ $? -ne 0 ]; then
+      echo "⚠ Could not parse npm audit output — failing security check as a precaution"
+      exit 1
+    fi
     if [ "$HIGH_COUNT" = "0" ]; then
       echo "⚠ npm audit: remaining vulns are in npm bundled deps (upstream fix required)"
       echo "=== Security Check Passed (with upstream warnings) ==="
