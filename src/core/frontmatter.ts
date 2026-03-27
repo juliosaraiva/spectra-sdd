@@ -167,8 +167,10 @@ export function parseMarkdownACs(body: string): AcceptanceCriterion[] {
         thenItems.push(listMatch[1].trim());
         continue;
       }
-      // Empty line or non-list line ends Then collection (but not the AC)
+      // Empty line: keep collecting (allow blank lines between list items)
       if (line.trim() === "") continue;
+      // Non-empty, non-list line: stop collecting Then items
+      collectingThen = false;
     }
   }
 

@@ -1,4 +1,5 @@
 import { readFile, access } from "node:fs/promises";
+import { join } from "node:path";
 import { parse } from "yaml";
 import { parseFeatureSpecMd, parseImplSpecMd } from "./frontmatter.js";
 
@@ -74,9 +75,9 @@ export async function resolveSpecFile(
   const yamlExt = `.${type}.yaml`;
   const ymlExt = `.${type}.yml`;
 
-  const mdPath = `${basePath}/${name}${mdExt}`;
-  const yamlPath = `${basePath}/${name}${yamlExt}`;
-  const ymlPath = `${basePath}/${name}${ymlExt}`;
+  const mdPath = join(basePath, `${name}${mdExt}`);
+  const yamlPath = join(basePath, `${name}${yamlExt}`);
+  const ymlPath = join(basePath, `${name}${ymlExt}`);
 
   // Prefer .md if it exists
   try {

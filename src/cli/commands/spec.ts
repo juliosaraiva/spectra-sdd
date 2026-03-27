@@ -6,7 +6,7 @@ import { resolveSpectraPath } from "../../core/config.js";
 import { contentHash } from "../../core/hash.js";
 import { rebuildIndex } from "../../core/index-builder.js";
 import type { FeatureSpec } from "../../core/spec-types.js";
-import { serializeFeatureSpec } from "../../core/frontmatter.js";
+import { serializeFeatureSpec, parseFrontmatter } from "../../core/frontmatter.js";
 import { readSpecFile } from "../../core/spec-reader.js";
 
 function featureTemplate(name: string, idPrefix: string): FeatureSpec {
@@ -182,17 +182,15 @@ specCommand
         signed_by: `@${process.env.USER ?? "user"}`,
       };
 
-      // Write back in the original format
+      // Write back in the original format, preserving the body verbatim
       if (specPath.endsWith(".spec.md")) {
-        const { FeatureSpecSchema } = await import("../../core/spec-types.js");
-        const specResult = FeatureSpecSchema.safeParse(parsed);
-        if (specResult.success) {
-          await writeFile(specPath, serializeFeatureSpec(specResult.data));
-        } else {
-          // Fallback: write as YAML
-          const { stringify } = await import("yaml");
-          await writeFile(specPath, stringify(parsed, { lineWidth: 120 }));
-        }
+        // Update only the frontmatter hash block; keep Markdown body intact
+        const rawContent = await readFile(specPath, "utf8");
+        const { meta, body } = parseFrontmatter(rawContent);
+        meta.hash = parsed.hash;
+        const { stringify: yamlStringify } = await import("yaml");
+        const updatedFrontmatter = yamlStringify(meta, { lineWidth: 120 }).trimEnd();
+        await writeFile(specPath, `---\n${updatedFrontmatter}\n---\n\n${body}`);
       } else {
         const { stringify } = await import("yaml");
         await writeFile(specPath, stringify(parsed, { lineWidth: 120 }));

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdir, rm, readdir, readFile } from "node:fs/promises";
 import { join, resolve, dirname } from "node:path";
 import { tmpdir } from "node:os";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseImplSpecMd } from "../../src/core/frontmatter.js";
 
@@ -11,7 +11,7 @@ const PROJECT_ROOT = resolve(__dirname, "..", "..");
 const CLI_PATH = join(PROJECT_ROOT, "src", "cli", "index.ts");
 
 function run(cmd: string, cwd: string): string {
-  return execSync(`npx tsx ${CLI_PATH} ${cmd}`, {
+  return execFileSync("npx", ["tsx", CLI_PATH, ...cmd.split(/\s+/)], {
     cwd,
     encoding: "utf8",
     env: { ...process.env, HOME: cwd },
