@@ -1,15 +1,14 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { mkdir, rm, readFile, access, writeFile, stat } from "node:fs/promises";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { mkdir, mkdtemp, rm, readFile, access, writeFile, stat } from "node:fs/promises";
 import { join, resolve, dirname } from "node:path";
 import { tmpdir } from "node:os";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { parse } from "yaml";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "..", "..");
 const CLI_PATH = join(PROJECT_ROOT, "src", "cli", "index.ts");
-const TEST_DIR = join(tmpdir(), "spectra-test-init-" + Date.now());
 
 /** Known scaffold file paths relative to the .claude/ target directory */
 const EXPECTED_SCAFFOLD_FILES = [
@@ -29,18 +28,28 @@ const EXPECTED_SCAFFOLD_FILES = [
   join("skills", "spectra-test-design", "SKILL.md"),
 ];
 
+function run(argv: string[], cwd: string, env?: NodeJS.ProcessEnv): string {
+  return execFileSync("npx", ["tsx", CLI_PATH, ...argv], {
+    cwd,
+    encoding: "utf8",
+    env: env ?? { ...process.env, HOME: cwd },
+  });
+}
+
+let TEST_DIR = "";
+
 beforeEach(async () => {
+  TEST_DIR = await mkdtemp(join(tmpdir(), "spectra-test-init-"));
+});
+
+afterEach(async () => {
+  if (!TEST_DIR) return;
   await rm(TEST_DIR, { recursive: true, force: true });
-  await mkdir(TEST_DIR, { recursive: true });
 });
 
 describe("spectra init", () => {
   it("creates the .spectra directory structure", async () => {
-    // Run init from the test dir
-    execSync(`npx tsx ${CLI_PATH} init`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
+    run(["init"], TEST_DIR);
 
     const spectraDir = join(TEST_DIR, ".spectra");
 
@@ -68,46 +77,29 @@ describe("spectra init", () => {
   });
 
   it("is idempotent - does not overwrite existing", async () => {
-    // First init
-    execSync(`npx tsx ${CLI_PATH} init`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
+    run(["init"], TEST_DIR);
 
     // Second init should not error
-    const output = execSync(`npx tsx ${CLI_PATH} init`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
-
+    const output = run(["init"], TEST_DIR);
     expect(output).toContain("already initialized");
   });
 
   it("sets ai_tools.adapter to none when no AI tool is detected", async () => {
-    execSync(`npx tsx ${CLI_PATH} init`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
+    run(["init"], TEST_DIR);
 
     const config = parse(await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8"));
     expect(config.ai_tools.adapter).toBe("none");
   });
 
   it("sets ai_tools.adapter to claude-code when --claude flag is used", async () => {
-    execSync(`npx tsx ${CLI_PATH} init --claude`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
+    run(["init", "--claude"], TEST_DIR);
 
     const config = parse(await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8"));
     expect(config.ai_tools.adapter).toBe("claude-code");
   });
 
   it("creates .claude/ scaffold files when --claude flag is used", async () => {
-    execSync(`npx tsx ${CLI_PATH} init --claude`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
+    run(["init", "--claude"], TEST_DIR);
 
     const claudeDir = join(TEST_DIR, ".claude");
     for (const relPath of EXPECTED_SCAFFOLD_FILES) {
@@ -116,10 +108,7 @@ describe("spectra init", () => {
   });
 
   it("makes hook scripts executable when --claude flag is used", async () => {
-    execSync(`npx tsx ${CLI_PATH} init --claude`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
+    run(["init", "--claude"], TEST_DIR);
 
     const claudeDir = join(TEST_DIR, ".claude");
     const hookFiles = [
@@ -138,10 +127,7 @@ describe("spectra init", () => {
     // Pre-create a .claude directory to simulate an existing Claude Code project
     await mkdir(join(TEST_DIR, ".claude"), { recursive: true });
 
-    execSync(`npx tsx ${CLI_PATH} init`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
+    run(["init"], TEST_DIR);
 
     const config = parse(await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8"));
     expect(config.ai_tools.adapter).toBe("claude-code");
@@ -152,10 +138,10 @@ describe("spectra init", () => {
     const fakeHome = join(TEST_DIR, "fake-home");
     await mkdir(fakeHome, { recursive: true });
 
-    execSync(`npx tsx ${CLI_PATH} init --claude --global`, {
-      cwd: TEST_DIR,
-      env: { ...process.env, HOME: fakeHome, USERPROFILE: fakeHome },
-      encoding: "utf8",
+    run(["init", "--claude", "--global"], TEST_DIR, {
+      ...process.env,
+      HOME: fakeHome,
+      USERPROFILE: fakeHome,
     });
 
     const globalClaudeDir = join(fakeHome, ".claude");
@@ -169,10 +155,7 @@ describe("spectra init", () => {
 
   it("does not overwrite scaffold files once .spectra is initialized (re-init guard)", async () => {
     // First init with --claude writes scaffolds
-    execSync(`npx tsx ${CLI_PATH} init --claude`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
+    run(["init", "--claude"], TEST_DIR);
 
     const scaffoldFile = join(TEST_DIR, ".claude", "settings.json");
     const originalContent = await readFile(scaffoldFile, "utf8");
@@ -182,11 +165,7 @@ describe("spectra init", () => {
     await writeFile(scaffoldFile, sentinel);
 
     // Second init is blocked by the "already initialized" guard
-    const output = execSync(`npx tsx ${CLI_PATH} init --claude`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
-
+    const output = run(["init", "--claude"], TEST_DIR);
     expect(output).toContain("already initialized");
 
     // The sentinel content must still be intact (scaffold was not overwritten)
@@ -203,10 +182,7 @@ describe("spectra init", () => {
     await writeFile(join(claudeDir, "settings.json"), sentinel);
 
     // Run spectra init --claude for the first time
-    execSync(`npx tsx ${CLI_PATH} init --claude`, {
-      cwd: TEST_DIR,
-      encoding: "utf8",
-    });
+    run(["init", "--claude"], TEST_DIR);
 
     // The pre-existing file must not have been overwritten
     const afterContent = await readFile(join(claudeDir, "settings.json"), "utf8");
