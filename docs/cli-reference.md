@@ -71,7 +71,7 @@ Output columns: ID, Title, Status, Version, ACs. Status is color-coded: active=g
 
 ### `spectra spec show <id>`
 
-Print the raw YAML of a spec.
+Print the raw content of a spec file.
 
 ```bash
 spectra spec show feat:user-authentication
@@ -187,6 +187,7 @@ spectra gate sign feat:user-authentication --phase specify [options]
 | `--phase <phase>` | **Required.** `specify`, `design`, `test-design`, `implement`, or `reconcile` | -- |
 | `--signer <name>` | Signer identity | `@$USER` |
 | `--comment <text>` | Approval comment | -- |
+| `--force` | Bypass phase ordering check | `false` |
 
 Computes the current spec content hash, writes a `.gate.yaml` file to `.spectra/gates/`, and updates the gate status in `trace.json`.
 
