@@ -53,7 +53,7 @@ jobs:
       - name: Security audit
         run: |
           npm audit --audit-level=high 2>&1 && exit 0
-          HIGH_COUNT=$(npm audit --json 2>/dev/null | jq '[.vulnerabilities // {} | to_entries[] | select(.value.severity == "high" or .value.severity == "critical") | select(.value.nodes | any(startswith("node_modules/npm/")) | not)] | length')
+          HIGH_COUNT=$( (npm audit --json 2>/dev/null || true) | jq '[.vulnerabilities // {} | to_entries[] | select(.value.severity == "high" or .value.severity == "critical") | select(.value.nodes | any(startswith("node_modules/npm/")) | not)] | length')
           if [ "$HIGH_COUNT" = "0" ]; then
             echo "::warning::npm audit: remaining high/critical vulnerabilities are in npm bundled dependencies (upstream fix required)"
           else
