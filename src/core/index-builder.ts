@@ -24,7 +24,13 @@ export async function rebuildIndex(projectRoot: string): Promise<SpecIndex> {
     if (!isFeatureSpec(file)) continue;
 
     const filePath = join(featuresDir, file);
-    const { parsed } = await readSpecFile(filePath);
+    let parsed: Record<string, unknown>;
+    try {
+      ({ parsed } = await readSpecFile(filePath));
+    } catch {
+      // Skip files that fail to parse (invalid YAML or malformed frontmatter)
+      continue;
+    }
 
     // Extract basic fields even if full validation fails (for drafts)
     const spectra = parsed?.spectra as Record<string, unknown> | undefined;

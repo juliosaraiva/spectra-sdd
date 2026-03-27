@@ -203,7 +203,9 @@ export async function validateCrossRefs(projectRoot: string): Promise<Validation
           const parsed = parseSpecContent(raw, join(implSubDir, f));
           const spectraMeta = parsed?.spectra as Record<string, unknown> | undefined;
           const featureRef = spectraMeta?.feature_ref as string | undefined;
-          if (featureRef && !featureIds.has(featureRef)) {
+          // Strip semver suffix (e.g., "feat:auth@1.0.0" → "feat:auth") for ID comparison
+          const featureId = featureRef?.replace(/@\d+\.\d+\.\d+$/, "");
+          if (featureRef && featureId && !featureIds.has(featureId)) {
             results.push({
               file: join(implSubDir, f),
               valid: false,
