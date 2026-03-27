@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdir, writeFile, rm, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -13,12 +13,20 @@ import {
 } from "../../src/core/constitution.js";
 import { ConstitutionSchema } from "../../src/core/spec-types.js";
 
-const TEST_DIR = join(tmpdir(), "spectra-test-constitution");
-const SPECTRA_DIR = join(TEST_DIR, ".spectra");
+let TEST_DIR: string;
+let SPECTRA_DIR: string;
 
 beforeEach(async () => {
-  await rm(TEST_DIR, { recursive: true, force: true });
+  TEST_DIR = join(
+    tmpdir(),
+    "spectra-test-constitution-" + Date.now() + "-" + Math.random().toString(36).slice(2)
+  );
+  SPECTRA_DIR = join(TEST_DIR, ".spectra");
   await mkdir(SPECTRA_DIR, { recursive: true });
+});
+
+afterEach(async () => {
+  await rm(TEST_DIR, { recursive: true, force: true });
 });
 
 describe("selectConstraints", () => {
