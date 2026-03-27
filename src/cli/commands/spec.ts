@@ -1,11 +1,13 @@
 import { Command } from "commander";
 import { readFile, writeFile } from "node:fs/promises";
-import { stringify, parse } from "yaml";
+import { parse } from "yaml";
 import chalk from "chalk";
 import { resolveSpectraPath } from "../../core/config.js";
 import { contentHash } from "../../core/hash.js";
 import { rebuildIndex } from "../../core/index-builder.js";
 import type { FeatureSpec } from "../../core/spec-types.js";
+import { serializeFeatureSpec } from "../../core/frontmatter.js";
+import { readSpecFile } from "../../core/spec-reader.js";
 
 function featureTemplate(name: string, idPrefix: string): FeatureSpec {
   const id = `${idPrefix}:${name}`;
@@ -69,10 +71,10 @@ specCommand
   .action(async (name: string, opts) => {
     const projectRoot = process.cwd();
     const spec = featureTemplate(name, opts.prefix);
-    const fileName = `${name}.spec.yaml`;
+    const fileName = `${name}.spec.md`;
     const filePath = resolveSpectraPath(projectRoot, "features", fileName);
 
-    await writeFile(filePath, stringify(spec, { lineWidth: 120 }));
+    await writeFile(filePath, serializeFeatureSpec(spec));
     await rebuildIndex(projectRoot);
 
     console.log(chalk.green(`Created feature spec: ${chalk.bold(spec.spectra.id)}`));
@@ -171,8 +173,7 @@ specCommand
       }
 
       const specPath = resolveSpectraPath(projectRoot, "features", entry.file);
-      const specRaw = await readFile(specPath, "utf8");
-      const parsed = parse(specRaw);
+      const { parsed } = await readSpecFile(specPath);
       const hash = contentHash(parsed);
 
       parsed.hash = {
@@ -181,7 +182,21 @@ specCommand
         signed_by: `@${process.env.USER ?? "user"}`,
       };
 
-      await writeFile(specPath, stringify(parsed, { lineWidth: 120 }));
+      // Write back in the original format
+      if (specPath.endsWith(".spec.md")) {
+        const { FeatureSpecSchema } = await import("../../core/spec-types.js");
+        const specResult = FeatureSpecSchema.safeParse(parsed);
+        if (specResult.success) {
+          await writeFile(specPath, serializeFeatureSpec(specResult.data));
+        } else {
+          // Fallback: write as YAML
+          const { stringify } = await import("yaml");
+          await writeFile(specPath, stringify(parsed, { lineWidth: 120 }));
+        }
+      } else {
+        const { stringify } = await import("yaml");
+        await writeFile(specPath, stringify(parsed, { lineWidth: 120 }));
+      }
       await rebuildIndex(projectRoot);
 
       console.log(chalk.green(`Hash updated: ${chalk.bold(hash)}`));

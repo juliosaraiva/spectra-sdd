@@ -13,6 +13,7 @@ import { resolveSpectraPath } from "../../core/config.js";
 import { contentHash } from "../../core/hash.js";
 import { updateGateInTrace } from "../../core/trace.js";
 import type { Phase } from "../../core/spec-types.js";
+import { readSpecFile } from "../../core/spec-reader.js";
 
 export const gateCommand = new Command("gate").description("Manage human review gates");
 
@@ -25,6 +26,7 @@ gateCommand
   )
   .option("--signer <signer>", "Signer identity", `@${process.env.USER ?? "user"}`)
   .option("--comment <comment>", "Approval comment")
+  .option("--force", "Bypass phase ordering check", false)
   .action(async (specId: string, opts) => {
     const projectRoot = process.cwd();
 
@@ -40,9 +42,26 @@ gateCommand
     }
 
     const specPath = resolveSpectraPath(projectRoot, "features", entry.file);
-    const specRaw = await readFile(specPath, "utf8");
-    const specParsed = parse(specRaw);
+    const { parsed: specParsed } = await readSpecFile(specPath);
     const hash = contentHash(specParsed);
+
+    // Enforce phase ordering (unless --force)
+    if (!opts.force) {
+      const existingGates = await listGates(projectRoot, specId);
+      const signedPhases = existingGates
+        .filter((g) => g.gate.status === "approved")
+        .map((g) => g.gate.phase);
+      const readiness = checkPhaseReady(opts.phase as Phase, signedPhases);
+      if (!readiness.ready) {
+        console.log(
+          chalk.red(
+            `Cannot sign ${opts.phase}: missing prerequisite gates: ${readiness.missing.join(", ")}`
+          )
+        );
+        console.log(chalk.yellow("Use --force to bypass phase ordering."));
+        return;
+      }
+    }
 
     const gate = await signGate(
       projectRoot,
@@ -146,8 +165,7 @@ gateCommand
     }
 
     const specPath = resolveSpectraPath(projectRoot, "features", entry.file);
-    const specRaw = await readFile(specPath, "utf8");
-    const specParsed = parse(specRaw);
+    const { parsed: specParsed } = await readSpecFile(specPath);
     const hash = contentHash(specParsed);
 
     const result = await verifyGate(projectRoot, specId, opts.phase as Phase, hash);

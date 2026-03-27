@@ -3,8 +3,8 @@ import { mkdtemp, rm, access, readFile } from "node:fs/promises";
 import { join, resolve, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
-import { parse } from "yaml";
 import { fileURLToPath } from "node:url";
+import { parseFeatureSpecMd } from "../../src/core/frontmatter.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "..", "..");
@@ -35,15 +35,15 @@ describe("spectra spec", () => {
 
     expect(output).toContain("feat:test-feature");
 
-    await access(join(tmpDir, ".spectra", "features", "test-feature.spec.yaml"));
+    await access(join(tmpDir, ".spectra", "features", "test-feature.spec.md"));
 
     const raw = await readFile(
-      join(tmpDir, ".spectra", "features", "test-feature.spec.yaml"),
+      join(tmpDir, ".spectra", "features", "test-feature.spec.md"),
       "utf8"
     );
-    const parsed = parse(raw);
-    expect(parsed.spectra.id).toBe("feat:test-feature");
-    expect(parsed.spectra.type).toBe("feature");
+    const parsed = parseFeatureSpecMd(raw);
+    expect((parsed.spectra as Record<string, unknown>).id).toBe("feat:test-feature");
+    expect((parsed.spectra as Record<string, unknown>).type).toBe("feature");
   });
 
   it("spec list shows features after creation", () => {
@@ -78,12 +78,12 @@ describe("spectra spec", () => {
     expect(output).toContain("sha256:");
 
     const raw = await readFile(
-      join(tmpDir, ".spectra", "features", "test-feature.spec.yaml"),
+      join(tmpDir, ".spectra", "features", "test-feature.spec.md"),
       "utf8"
     );
-    const parsed = parse(raw);
+    const parsed = parseFeatureSpecMd(raw);
     expect(parsed.hash).toBeDefined();
-    expect(parsed.hash.content_hash).toMatch(/^sha256:/);
+    expect((parsed.hash as Record<string, unknown>).content_hash).toMatch(/^sha256:/);
   });
 
   it("spec new with no name fails gracefully", () => {

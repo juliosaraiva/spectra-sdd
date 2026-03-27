@@ -6,6 +6,7 @@ import { lintFeatureSpec, lintAll, type LintResult } from "../../core/linter.js"
 import { resolveSpectraPath } from "../../core/config.js";
 import { FeatureSpecSchema } from "../../core/spec-types.js";
 import { loadConstitution } from "../../core/constitution.js";
+import { readSpecFile } from "../../core/spec-reader.js";
 
 export const lintCommand = new Command("lint")
   .description("Lint spec files for quality issues")
@@ -28,8 +29,7 @@ export const lintCommand = new Command("lint")
         }
 
         const filePath = resolveSpectraPath(projectRoot, "features", entry.file);
-        const raw = await readFile(filePath, "utf8");
-        const parsed = parse(raw);
+        const { parsed } = await readSpecFile(filePath);
         const specResult = FeatureSpecSchema.safeParse(parsed);
 
         if (!specResult.success) {
