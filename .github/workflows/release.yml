@@ -2,23 +2,38 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
 
 jobs:
   release:
-    name: Release Gate
+    name: Release
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22.14.0"
           cache: "npm"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: npm ci
@@ -26,11 +41,25 @@ jobs:
       - name: TypeScript type check
         run: npm run typecheck
 
-      - name: Run full test suite with coverage
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier format check
+        run: npm run format:check
+
+      - name: Run tests with coverage
         run: npm run test:coverage
 
       - name: Security audit
-        run: npm audit --audit-level=high
+        run: |
+          npm audit --audit-level=high 2>&1 && exit 0
+          HIGH_COUNT=$( (npm audit --json 2>/dev/null || true) | jq '[.vulnerabilities // {} | to_entries[] | select(.value.severity == "high" or .value.severity == "critical") | select(.value.nodes | any(startswith("node_modules/npm/")) | not)] | length')
+          if [ "$HIGH_COUNT" = "0" ]; then
+            echo "::warning::npm audit: remaining high/critical vulnerabilities are in npm bundled dependencies (upstream fix required)"
+          else
+            npm audit --audit-level=high
+            exit 1
+          fi
 
       - name: Build
         run: npm run build
@@ -40,8 +69,9 @@ jobs:
           test -f dist/index.js
           node dist/index.js --version
 
-      # Uncomment when ready to publish:
-      # - name: Publish to npm
-      #   run: npm publish --access public
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release

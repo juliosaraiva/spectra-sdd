@@ -11,12 +11,29 @@ import { statusCommand } from "./commands/status.js";
 import { generateCommand } from "./commands/generate.js";
 import { auditCommand } from "./commands/audit.js";
 
+import { createRequire } from "node:module";
+
+declare const SPECTRA_VERSION: string | undefined;
+
+function getVersion(): string {
+  if (typeof SPECTRA_VERSION !== "undefined") return SPECTRA_VERSION;
+  const require = createRequire(import.meta.url);
+
+  // Try to resolve package.json relative to both built and source layouts
+  try {
+    return (require("../package.json") as { version: string }).version;
+  } catch {
+    // Fallback for running from src/cli/index.ts via tsx
+    return (require("../../package.json") as { version: string }).version;
+  }
+}
+
 const program = new Command();
 
 program
   .name("spectra")
   .description("SPECTRA — Spec-Driven Development with Composable Traceability and Reconciliation")
-  .version("0.1.0");
+  .version(getVersion());
 
 program.addCommand(initCommand);
 program.addCommand(specCommand);

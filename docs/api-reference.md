@@ -16,6 +16,10 @@ Exported TypeScript functions from SPECTRA's core and engine modules. All functi
 
 *Synchronous.* Returns `contentHash(obj) === expected`.
 
+### `hashString(input: string): string`
+
+*Synchronous.* Computes SHA-256 of a raw string value and returns `sha256:<hex>`. Useful for hashing file contents or template output without requiring object canonicalization.
+
 ---
 
 ## `src/core/config.ts`

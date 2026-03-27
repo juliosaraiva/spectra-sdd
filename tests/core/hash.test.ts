@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { canonicalize, contentHash, verifyHash } from "../../src/core/hash.js";
+import { canonicalize, contentHash, verifyHash, hashString } from "../../src/core/hash.js";
 
 describe("canonicalize", () => {
   it("sorts keys recursively", () => {
@@ -90,5 +90,43 @@ describe("verifyHash", () => {
     expect(
       verifyHash(obj, "sha256:0000000000000000000000000000000000000000000000000000000000000000")
     ).toBe(false);
+  });
+});
+
+describe("hashString", () => {
+  it("returns sha256: prefixed string", () => {
+    const hash = hashString("hello");
+    expect(hash).toMatch(/^sha256:[a-f0-9]{64}$/);
+  });
+
+  it("produces the correct digest for a known input", () => {
+    // SHA-256 of "hello" is 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+    expect(hashString("hello")).toBe(
+      "sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    );
+  });
+
+  it("produces deterministic output", () => {
+    const hash1 = hashString("test input");
+    const hash2 = hashString("test input");
+    expect(hash1).toBe(hash2);
+  });
+
+  it("produces different hashes for different inputs", () => {
+    expect(hashString("abc")).not.toBe(hashString("def"));
+  });
+
+  it("handles Unicode input", () => {
+    const hash = hashString("こんにちは🌍");
+    expect(hash).toMatch(/^sha256:[a-f0-9]{64}$/);
+    // Must be stable across calls
+    expect(hashString("こんにちは🌍")).toBe(hash);
+  });
+
+  it("handles empty string", () => {
+    // SHA-256 of "" is e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    expect(hashString("")).toBe(
+      "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    );
   });
 });

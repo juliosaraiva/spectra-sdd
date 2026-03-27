@@ -43,3 +43,12 @@ export function contentHash(obj: Record<string, unknown>): string {
 export function verifyHash(obj: Record<string, unknown>, expected: string): boolean {
   return contentHash(obj) === expected;
 }
+
+/**
+ * Computes SHA-256 of a raw string value.
+ * Returns `sha256:<hex>`. Useful for hashing file contents or template output.
+ */
+export function hashString(input: string): string {
+  const hash = createHash("sha256").update(input, "utf8").digest("hex");
+  return `sha256:${hash}`;
+}

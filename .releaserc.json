@@ -1,0 +1,63 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          { "breaking": true, "release": "minor" },
+          { "type": "feat", "release": "minor" },
+          { "type": "fix", "release": "patch" },
+          { "type": "perf", "release": "patch" },
+          { "type": "revert", "release": "patch" }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            { "type": "feat", "section": "Features" },
+            { "type": "fix", "section": "Bug Fixes" },
+            { "type": "perf", "section": "Performance Improvements" },
+            { "type": "revert", "section": "Reverts" },
+            { "type": "docs", "section": "Documentation", "hidden": true },
+            { "type": "refactor", "section": "Code Refactoring", "hidden": true },
+            { "type": "test", "section": "Tests", "hidden": true },
+            { "type": "chore", "section": "Miscellaneous", "hidden": true },
+            { "type": "ci", "hidden": true },
+            { "type": "build", "hidden": true }
+          ]
+        }
+      }
+    ],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md",
+        "changelogTitle": "# Changelog\n\nAll notable changes to SPECTRA SDD will be documented in this file.\nThis project adheres to [Semantic Versioning](https://semver.org/)."
+      }
+    ],
+    "@semantic-release/npm",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          { "path": "dist/index.js", "label": "CLI Bundle (dist/index.js)" }
+        ],
+        "successComment": "This issue/PR is included in version ${nextRelease.version}.",
+        "releasedLabels": ["released"]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["CHANGELOG.md", "package.json", "package-lock.json"],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
+  ]
+}

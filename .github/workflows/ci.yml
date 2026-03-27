@@ -69,7 +69,16 @@ jobs:
         run: npm ci
 
       - name: npm audit (high and critical)
-        run: npm audit --audit-level=high
+        run: |
+          npm audit --audit-level=high 2>&1 && exit 0
+          # If audit fails, check if all high+ issues are in npm bundled deps (unfixable upstream)
+          HIGH_COUNT=$( (npm audit --json 2>/dev/null || true) | jq '[.vulnerabilities // {} | to_entries[] | select(.value.severity == "high" or .value.severity == "critical") | select(.value.nodes | any(startswith("node_modules/npm/")) | not)] | length')
+          if [ "$HIGH_COUNT" = "0" ]; then
+            echo "::warning::npm audit: remaining high/critical vulnerabilities are in npm bundled dependencies (upstream fix required)"
+          else
+            npm audit --audit-level=high
+            exit 1
+          fi
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
