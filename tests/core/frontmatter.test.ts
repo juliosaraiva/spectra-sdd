@@ -137,6 +137,12 @@ describe("parseFrontmatter", () => {
     expect(meta.key).toBe("value");
     expect(body).toBe("body text");
   });
+
+  it("handles file ending immediately after closing delimiter (no trailing newline)", () => {
+    const { meta, body } = parseFrontmatter("---\nkey: value\n---");
+    expect(meta.key).toBe("value");
+    expect(body).toBe("");
+  });
 });
 
 // ─── parseMarkdownACs ───────────────────────────────────────────────────────

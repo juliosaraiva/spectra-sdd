@@ -3,7 +3,7 @@ import type { AcceptanceCriterion, FeatureSpec, ImplSpec } from "./spec-types.js
 
 // ─── Frontmatter Parsing ────────────────────────────────────────────────────
 
-const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
+const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 
 export interface ParsedFrontmatter {
   meta: Record<string, unknown>;
