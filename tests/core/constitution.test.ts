@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdir, writeFile, rm, readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile, rm, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -17,10 +17,7 @@ let TEST_DIR: string;
 let SPECTRA_DIR: string;
 
 beforeEach(async () => {
-  TEST_DIR = join(
-    tmpdir(),
-    "spectra-test-constitution-" + Date.now() + "-" + Math.random().toString(36).slice(2)
-  );
+  TEST_DIR = await mkdtemp(join(tmpdir(), "spectra-test-constitution-"));
   SPECTRA_DIR = join(TEST_DIR, ".spectra");
   await mkdir(SPECTRA_DIR, { recursive: true });
 });
