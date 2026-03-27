@@ -37,7 +37,10 @@ echo "=== End SPECTRA Status ==="
 # ─── Security Check (mirrors CI Security Gate) ────────────────────────
 echo ""
 echo "=== Security Check ==="
-if npm audit --audit-level=high 2>&1 | tail -3; then
+AUDIT_OUTPUT=$(npm audit --audit-level=high 2>&1)
+AUDIT_EXIT=$?
+echo "$AUDIT_OUTPUT" | tail -3
+if [ "$AUDIT_EXIT" -eq 0 ]; then
   echo "  No high/critical vulnerabilities"
 else
   echo "  ⚠ Run 'npm audit' for details"

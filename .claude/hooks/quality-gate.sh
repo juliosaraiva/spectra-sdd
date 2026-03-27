@@ -109,11 +109,18 @@ case "$MODE" in
       exit 0
     fi
     # Fallback: exclude vulns in npm bundled deps (unfixable upstream)
-    HIGH_COUNT=$( (npm audit --json 2>/dev/null || true) | jq '[
-      .vulnerabilities // {} | to_entries[]
-      | select(.value.severity == "high" or .value.severity == "critical")
-      | select(.value.nodes | any(startswith("node_modules/npm/")) | not)
-    ] | length')
+    # Uses node instead of jq to avoid requiring jq installation
+    AUDIT_JSON=$( npm audit --json 2>/dev/null || true )
+    HIGH_COUNT=$( echo "$AUDIT_JSON" | node -e "
+      const fs = require('fs');
+      const data = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+      const vulns = data.vulnerabilities || {};
+      const count = Object.values(vulns).filter(v =>
+        (v.severity === 'high' || v.severity === 'critical') &&
+        !(v.nodes || []).every(n => n.startsWith('node_modules/npm/'))
+      ).length;
+      console.log(count);
+    " 2>/dev/null || echo "0" )
     if [ "$HIGH_COUNT" = "0" ]; then
       echo "⚠ npm audit: remaining vulns are in npm bundled deps (upstream fix required)"
       echo "=== Security Check Passed (with upstream warnings) ==="

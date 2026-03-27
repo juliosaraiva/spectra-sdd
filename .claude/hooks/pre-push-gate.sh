@@ -27,6 +27,11 @@ if ! echo "$COMMAND" | grep -qE '^\s*git\s+push'; then
   exit 0
 fi
 
+# Only run if this is a SPECTRA project
+if [ ! -d ".spectra" ]; then
+  exit 0
+fi
+
 echo "=== Pre-Push Quality Gate ==="
 echo "Running full CI checks before push..."
 echo ""
@@ -51,6 +56,6 @@ echo "║ Useful commands:                                        ║" >&2
 echo "║   npm run lint:fix      — auto-fix ESLint issues        ║" >&2
 echo "║   npm run format        — auto-fix Prettier issues      ║" >&2
 echo "║   npm run typecheck     — check types                   ║" >&2
-echo "║   npm run test          — run tests                     ║" >&2
+echo "║   npm run test:coverage — run tests with coverage        ║" >&2
 echo "╚══════════════════════════════════════════════════════════╝" >&2
 exit 2
