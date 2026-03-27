@@ -66,11 +66,13 @@ Engine Layer (src/engine/)
 | `config.ts` | Config loading and path utilities | `spectraDir()`, `loadConfig()`, `resolveSpectraPath()` |
 | `hash.ts` | Deterministic content hashing | `canonicalize()`, `contentHash()`, `verifyHash()` |
 | `constitution.ts` | Constitution loading and constraint selection | `loadConstitution()`, `selectConstraints()`, `amendConstitution()` |
+| `frontmatter.ts` | Markdown+Frontmatter parser and serializer for feature/impl specs | `parseFrontmatter()`, `parseMarkdownACs()`, `serializeFeatureSpec()`, `serializeImplSpec()` |
+| `spec-reader.ts` | Format-agnostic spec file reader (YAML and Markdown+Frontmatter) | `readSpecFile()`, `parseSpecContent()`, `resolveSpecFile()`, `isFeatureSpec()`, `isImplSpec()` |
 | `linter.ts` | 7 quality rules for feature specs | `lintFeatureSpec()`, `lintAll()` |
 | `gate.ts` | Gate lifecycle management | `signGate()`, `verifyGate()`, `checkPhaseReady()` |
 | `trace.ts` | Traceability matrix operations | `traceWhy()`, `traceForward()`, `computeCoverage()` |
 | `drift.ts` | Three-layer drift detection | `generateDriftReport()`, `computeDriftScore()` |
-| `validator.ts` | Schema validation for all spec types | `validateSpec()`, `validateAll()`, `validateCrossRefs()` |
+| `validator.ts` | Schema validation for all spec types (YAML and Markdown+Frontmatter) | `validateSpec()`, `validateAll()`, `validateCrossRefs()` |
 | `index-builder.ts` | Progressive disclosure index | `rebuildIndex()` |
 
 ### Engine Modules
@@ -94,17 +96,21 @@ spec-types.ts    (no internal deps — only zod)
      |       |
      +-------+---> constitution.ts
      |       |            |
-     +-------+---> linter.ts
+     +-------+---> frontmatter.ts
+     |       |            |
+     +-------+---> spec-reader.ts (depends on frontmatter.ts)
+     |       |            |
+     +-------+---> linter.ts (depends on spec-reader.ts)
      |       |
      +-------+---> gate.ts
      |       |
      +-------+---> trace.ts ---> drift.ts
      |       |
-     +-------+---> validator.ts
+     +-------+---> validator.ts (depends on spec-reader.ts)
      |       |
-     +-------+---> index-builder.ts
+     +-------+---> index-builder.ts (depends on spec-reader.ts)
      |
-     +---> engine/template-loader.ts ---> engine/generator.ts
+     +---> engine/template-loader.ts ---> engine/generator.ts (depends on spec-reader.ts)
      |                                         |
      +---> engine/lock.ts --------------------+---> engine/determinism.ts
      |
@@ -123,7 +129,7 @@ spectra init
   |
 spectra spec new <name>
   |
-  +-> Writes features/<name>.spec.yaml (scaffold)
+  +-> Writes features/<name>.spec.md (scaffold, Markdown+Frontmatter)
   +-> rebuildIndex() -> writes _index.yaml
   |
 spectra validate / lint
@@ -139,7 +145,7 @@ spectra gate sign --phase specify
   |
 spectra design --concerns "transport.rest,..."
   |
-  +-> Writes impl/<feature>/<concern>.impl.yaml per concern
+  +-> Writes impl/<feature>/<concern>.impl.md per concern (Markdown+Frontmatter)
   |
 spectra generate tests <feat-id>
   |
