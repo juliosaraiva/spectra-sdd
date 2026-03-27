@@ -28,27 +28,28 @@ const EXPECTED_SCAFFOLD_FILES = [
   join("skills", "spectra-test-design", "SKILL.md"),
 ];
 
-function run(cmd: string, cwd: string, env?: NodeJS.ProcessEnv): string {
-  return execFileSync("npx", ["tsx", CLI_PATH, ...cmd.split(/\s+/)], {
+function run(argv: string[], cwd: string, env?: NodeJS.ProcessEnv): string {
+  return execFileSync("npx", ["tsx", CLI_PATH, ...argv], {
     cwd,
     encoding: "utf8",
     env: env ?? { ...process.env, HOME: cwd },
   });
 }
 
-let TEST_DIR: string;
+let TEST_DIR = "";
 
 beforeEach(async () => {
   TEST_DIR = await mkdtemp(join(tmpdir(), "spectra-test-init-"));
 });
 
 afterEach(async () => {
+  if (!TEST_DIR) return;
   await rm(TEST_DIR, { recursive: true, force: true });
 });
 
 describe("spectra init", () => {
   it("creates the .spectra directory structure", async () => {
-    run("init", TEST_DIR);
+    run(["init"], TEST_DIR);
 
     const spectraDir = join(TEST_DIR, ".spectra");
 
@@ -76,29 +77,29 @@ describe("spectra init", () => {
   });
 
   it("is idempotent - does not overwrite existing", async () => {
-    run("init", TEST_DIR);
+    run(["init"], TEST_DIR);
 
     // Second init should not error
-    const output = run("init", TEST_DIR);
+    const output = run(["init"], TEST_DIR);
     expect(output).toContain("already initialized");
   });
 
   it("sets ai_tools.adapter to none when no AI tool is detected", async () => {
-    run("init", TEST_DIR);
+    run(["init"], TEST_DIR);
 
     const config = parse(await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8"));
     expect(config.ai_tools.adapter).toBe("none");
   });
 
   it("sets ai_tools.adapter to claude-code when --claude flag is used", async () => {
-    run("init --claude", TEST_DIR);
+    run(["init", "--claude"], TEST_DIR);
 
     const config = parse(await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8"));
     expect(config.ai_tools.adapter).toBe("claude-code");
   });
 
   it("creates .claude/ scaffold files when --claude flag is used", async () => {
-    run("init --claude", TEST_DIR);
+    run(["init", "--claude"], TEST_DIR);
 
     const claudeDir = join(TEST_DIR, ".claude");
     for (const relPath of EXPECTED_SCAFFOLD_FILES) {
@@ -107,7 +108,7 @@ describe("spectra init", () => {
   });
 
   it("makes hook scripts executable when --claude flag is used", async () => {
-    run("init --claude", TEST_DIR);
+    run(["init", "--claude"], TEST_DIR);
 
     const claudeDir = join(TEST_DIR, ".claude");
     const hookFiles = [
@@ -126,7 +127,7 @@ describe("spectra init", () => {
     // Pre-create a .claude directory to simulate an existing Claude Code project
     await mkdir(join(TEST_DIR, ".claude"), { recursive: true });
 
-    run("init", TEST_DIR);
+    run(["init"], TEST_DIR);
 
     const config = parse(await readFile(join(TEST_DIR, ".spectra", "config.yaml"), "utf8"));
     expect(config.ai_tools.adapter).toBe("claude-code");
@@ -137,7 +138,7 @@ describe("spectra init", () => {
     const fakeHome = join(TEST_DIR, "fake-home");
     await mkdir(fakeHome, { recursive: true });
 
-    run("init --claude --global", TEST_DIR, {
+    run(["init", "--claude", "--global"], TEST_DIR, {
       ...process.env,
       HOME: fakeHome,
       USERPROFILE: fakeHome,
@@ -154,7 +155,7 @@ describe("spectra init", () => {
 
   it("does not overwrite scaffold files once .spectra is initialized (re-init guard)", async () => {
     // First init with --claude writes scaffolds
-    run("init --claude", TEST_DIR);
+    run(["init", "--claude"], TEST_DIR);
 
     const scaffoldFile = join(TEST_DIR, ".claude", "settings.json");
     const originalContent = await readFile(scaffoldFile, "utf8");
@@ -164,7 +165,7 @@ describe("spectra init", () => {
     await writeFile(scaffoldFile, sentinel);
 
     // Second init is blocked by the "already initialized" guard
-    const output = run("init --claude", TEST_DIR);
+    const output = run(["init", "--claude"], TEST_DIR);
     expect(output).toContain("already initialized");
 
     // The sentinel content must still be intact (scaffold was not overwritten)
@@ -181,7 +182,7 @@ describe("spectra init", () => {
     await writeFile(join(claudeDir, "settings.json"), sentinel);
 
     // Run spectra init --claude for the first time
-    run("init --claude", TEST_DIR);
+    run(["init", "--claude"], TEST_DIR);
 
     // The pre-existing file must not have been overwritten
     const afterContent = await readFile(join(claudeDir, "settings.json"), "utf8");
