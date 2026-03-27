@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { join, resolve, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
@@ -21,11 +21,7 @@ describe("spectra validate", () => {
   let tmpDir: string;
 
   beforeEach(async () => {
-    tmpDir = join(
-      tmpdir(),
-      "spectra-test-validate-" + Date.now() + "-" + Math.random().toString(36).slice(2)
-    );
-    await mkdir(tmpDir, { recursive: true });
+    tmpDir = await mkdtemp(join(tmpdir(), "spectra-test-validate-"));
     run("init", tmpDir);
   });
 
@@ -49,7 +45,7 @@ describe("spectra validate", () => {
     run("spec new beta", tmpDir);
     const output = run("validate", tmpDir);
     // Should validate both and report them
-    expect(output).toMatch(/PASS|valid|specs are valid/i);
+    expect(output).toMatch(/\bPASS\b|\bvalid\b|specs are valid/i);
   });
 
   it("validate with no feature specs shows only constitution", () => {
