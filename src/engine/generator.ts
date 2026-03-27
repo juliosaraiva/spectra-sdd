@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
-import { parse } from "yaml";
 import { resolveSpectraPath } from "../core/config.js";
 import { contentHash, canonicalize } from "../core/hash.js";
-import { loadTemplateById } from "./template-loader.js";
+import { loadTemplateById, loadTemplateRaw } from "./template-loader.js";
 import { lockGeneration, isLocked, readLockEntry } from "./lock.js";
 import { selectConstraints, loadConstitution } from "../core/constitution.js";
+import { readSpecFile, resolveSpecFile } from "../core/spec-reader.js";
 
 export interface GenerationResult {
   success: boolean;
@@ -37,13 +37,17 @@ export async function generate(
 ): Promise<GenerationResult> {
   const { templateId, specId, specVersion, target, force } = options;
 
-  // Load spec
+  // Load spec (supports both .spec.md and .spec.yaml)
   const featureName = specId.replace(/^feat:/, "");
-  const specPath = resolveSpectraPath(projectRoot, "features", `${featureName}.spec.yaml`);
+  const featuresDir = resolveSpectraPath(projectRoot, "features");
+  const specPath = await resolveSpecFile(featuresDir, featureName, "spec");
 
   let specRaw: string;
+  let specParsed: Record<string, unknown>;
   try {
-    specRaw = await readFile(specPath, "utf8");
+    const result = await readSpecFile(specPath);
+    specRaw = result.raw;
+    specParsed = result.parsed;
   } catch {
     return {
       success: false,
@@ -53,7 +57,6 @@ export async function generate(
     };
   }
 
-  const specParsed = parse(specRaw);
   const inputHash = contentHash(specParsed);
 
   // Load template
@@ -67,7 +70,8 @@ export async function generate(
     };
   }
 
-  const templateHash = contentHash({ id: templateId, version: "1.0" });
+  const templateRaw = await loadTemplateRaw(projectRoot, templateId);
+  const templateHash = contentHash({ content: templateRaw ?? templateId, version: "1.0" });
 
   // Check lock — skip if already generated with same inputs
   if (!force) {
@@ -96,7 +100,8 @@ export async function generate(
   let constitutionalContext = "";
   try {
     const constitution = await loadConstitution(projectRoot);
-    const domain = specParsed?.identity?.domain ?? [];
+    const identity = specParsed?.identity as Record<string, unknown> | undefined;
+    const domain = (identity?.domain as string[]) ?? [];
     const constraints = selectConstraints(constitution, domain);
     if (constraints.length > 0) {
       constitutionalContext = constraints
@@ -105,6 +110,19 @@ export async function generate(
     }
   } catch {
     // No constitution
+  }
+
+  // Load impl spec for code generation (supports both .impl.md and .impl.yaml)
+  let implSpecYaml = "";
+  if (target && target !== "tests") {
+    const implName = target.replace(/\./g, "-");
+    const implDir = resolveSpectraPath(projectRoot, "impl", featureName);
+    try {
+      const implPath = await resolveSpecFile(implDir, implName, "impl");
+      implSpecYaml = await readFile(implPath, "utf8");
+    } catch {
+      // impl spec not found — continue without it
+    }
   }
 
   // Render template
@@ -116,6 +134,7 @@ export async function generate(
     spec_id: specId,
     spec_version: specVersion,
     target,
+    impl_spec_yaml: implSpecYaml,
   });
 
   const outputHash = contentHash({ output: rendered });

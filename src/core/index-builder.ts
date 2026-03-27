@@ -4,6 +4,7 @@ import { parse, stringify } from "yaml";
 import { FeatureSpecSchema, type SpecIndex, type IndexEntry } from "./spec-types.js";
 import { resolveSpectraPath } from "./config.js";
 import { contentHash } from "./hash.js";
+import { isFeatureSpec, isImplSpec, readSpecFile } from "./spec-reader.js";
 
 /**
  * Scans all feature spec files and rebuilds the _index.yaml for progressive disclosure.
@@ -20,15 +21,20 @@ export async function rebuildIndex(projectRoot: string): Promise<SpecIndex> {
   }
 
   for (const file of files) {
-    if (!file.endsWith(".spec.yaml") && !file.endsWith(".spec.yml")) continue;
+    if (!isFeatureSpec(file)) continue;
 
     const filePath = join(featuresDir, file);
-    const raw = await readFile(filePath, "utf8");
-    const parsed = parse(raw);
+    let parsed: Record<string, unknown>;
+    try {
+      ({ parsed } = await readSpecFile(filePath));
+    } catch {
+      // Skip files that fail to parse (invalid YAML or malformed frontmatter)
+      continue;
+    }
 
     // Extract basic fields even if full validation fails (for drafts)
-    const spectra = parsed?.spectra;
-    const identity = parsed?.identity;
+    const spectra = parsed?.spectra as Record<string, unknown> | undefined;
+    const identity = parsed?.identity as Record<string, unknown> | undefined;
     if (!spectra?.id || !identity?.title) continue;
 
     const result = FeatureSpecSchema.safeParse(parsed);
@@ -43,9 +49,7 @@ export async function rebuildIndex(projectRoot: string): Promise<SpecIndex> {
     let implCount = 0;
     try {
       const implFiles = await readdir(implDir);
-      implCount = implFiles.filter(
-        (f) => f.endsWith(".impl.yaml") || f.endsWith(".impl.yml")
-      ).length;
+      implCount = implFiles.filter((f) => isImplSpec(f)).length;
     } catch {
       // no impl dir yet
     }

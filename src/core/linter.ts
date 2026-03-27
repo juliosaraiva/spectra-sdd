@@ -1,10 +1,10 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { parse } from "yaml";
 import { FeatureSpecSchema, type FeatureSpec } from "./spec-types.js";
 import { verifyHash } from "./hash.js";
 import { resolveSpectraPath } from "./config.js";
 import { loadConstitution } from "./constitution.js";
+import { isFeatureSpec, readSpecFile } from "./spec-reader.js";
 
 export interface LintResult {
   rule: string;
@@ -192,10 +192,9 @@ export async function lintAll(projectRoot: string): Promise<LintResult[]> {
     const featDir = resolveSpectraPath(projectRoot, "features");
     const files = await readdir(featDir);
     for (const f of files) {
-      if (!f.endsWith(".spec.yaml") && !f.endsWith(".spec.yml")) continue;
+      if (!isFeatureSpec(f)) continue;
       const filePath = join(featDir, f);
-      const raw = await readFile(filePath, "utf8");
-      const parsed = parse(raw);
+      const { parsed } = await readSpecFile(filePath);
       const specResult = FeatureSpecSchema.safeParse(parsed);
       if (specResult.success) {
         results.push(...lintFeatureSpec(specResult.data, filePath, vocabulary, parsed));

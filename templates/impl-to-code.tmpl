@@ -4,11 +4,11 @@ Generate source code from the implementation spec below. The code must satisfy A
 CONSTITUTIONAL CONSTRAINTS (must be respected):
 {{constitutional_context}}
 
-FEATURE SPEC:
+FEATURE SPEC (may be YAML or Markdown+Frontmatter):
 {{spec_yaml}}
 
-IMPLEMENTATION SPEC (concern: {{target}}):
-[Implementation spec content will be injected here]
+IMPLEMENTATION SPEC (concern: {{target}}, may be YAML or Markdown+Frontmatter):
+{{impl_spec_yaml}}
 
 REQUIREMENTS:
 - Generated code must include a SPECTRA trace comment on the first line:

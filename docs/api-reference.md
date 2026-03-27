@@ -78,7 +78,7 @@ Appends a structured entry to `constitution.changelog`. Amendment includes: acti
 
 ### `validateSpec(filePath: string): Promise<ValidationResult>`
 
-Reads YAML file, auto-detects spec type (from `spectra.type` or filename pattern), validates against matching Zod schema. Returns `{ file, valid, errors[] }`.
+Reads a spec file (YAML or Markdown+Frontmatter), auto-detects spec type (from `spectra.type` or filename pattern), validates against matching Zod schema. Returns `{ file, valid, errors[] }`.
 
 ### `validateAll(projectRoot: string): Promise<ValidationResult[]>`
 
@@ -182,7 +182,63 @@ Runs all three detectors, groups by spec, returns full report with project_drift
 
 ### `rebuildIndex(projectRoot: string): Promise<SpecIndex>`
 
-Scans all `.spec.yaml` files in `features/`, extracts metadata, counts impl files and test cases, computes content hash, writes `_index.yaml`. Tolerates parse failures.
+Scans all feature spec files (`.spec.yaml`, `.spec.yml`, `.spec.md`) in `features/`, extracts metadata, counts impl files and test cases, computes content hash, writes `_index.yaml`. Tolerates parse failures.
+
+---
+
+## `src/core/frontmatter.ts`
+
+### `parseFrontmatter(raw: string): ParsedFrontmatter`
+
+*Synchronous.* Splits a Markdown+Frontmatter string into `{ meta: Record<string, unknown>, body: string }` using `---` delimiters. Throws if no valid frontmatter block is found.
+
+### `parseMarkdownACs(body: string): AcceptanceCriterion[]`
+
+*Synchronous.* Parses a Markdown body into an array of `AcceptanceCriterion` objects. Expects each AC as a `## AC-NNN: Title` heading followed by optional blockquote metadata (`> non_negotiable: true | constitution_constraints: [...]`), `**Given**`, `**When**`, and `**Then:**` / `**Then**` lines.
+
+### `parseFeatureSpecMd(raw: string): Record<string, unknown>`
+
+*Synchronous.* Parses a Markdown+Frontmatter feature spec. Calls `parseFrontmatter` to extract YAML metadata, then `parseMarkdownACs` to extract ACs from the body. Returns an object matching the shape expected by `FeatureSpecSchema`.
+
+### `parseImplSpecMd(raw: string): Record<string, unknown>`
+
+*Synchronous.* Parses a Markdown+Frontmatter impl spec. Frontmatter becomes the metadata; the body is stored as `design.description`. Returns an object matching the shape expected by `ImplSpecSchema`.
+
+### `serializeFeatureSpec(spec: FeatureSpec): string`
+
+*Synchronous.* Serializes a `FeatureSpec` to Markdown+Frontmatter format. Structured metadata (spectra, identity, interfaces, non_functional, dependencies, hash) goes in the YAML frontmatter block; acceptance criteria are rendered as Markdown sections in the body.
+
+### `serializeImplSpec(impl: ImplSpec, designBody?: string): string`
+
+*Synchronous.* Serializes an `ImplSpec` to Markdown+Frontmatter format. The frontmatter contains `spectra` metadata; the body is `designBody` if provided, otherwise `impl.design.description` (or a YAML code block for complex design objects).
+
+---
+
+## `src/core/spec-reader.ts`
+
+### `isMarkdownSpec(filePath: string): boolean`
+
+*Synchronous.* Returns `true` if the file path ends with `.spec.md` or `.impl.md`.
+
+### `isFeatureSpec(fileName: string): boolean`
+
+*Synchronous.* Returns `true` if the filename ends with `.spec.yaml`, `.spec.yml`, or `.spec.md`.
+
+### `isImplSpec(fileName: string): boolean`
+
+*Synchronous.* Returns `true` if the filename ends with `.impl.yaml`, `.impl.yml`, or `.impl.md`.
+
+### `readSpecFile(filePath: string): Promise<{ raw: string; parsed: Record<string, unknown> }>`
+
+Reads a spec file and parses it via `parseSpecContent`. Returns both the raw string and the parsed object, regardless of whether the file is YAML or Markdown+Frontmatter.
+
+### `parseSpecContent(raw: string, filePath: string): Record<string, unknown>`
+
+*Synchronous.* Parses spec content based on file extension: calls `parseFeatureSpecMd` for `.spec.md`, `parseImplSpecMd` for `.impl.md`, and `yaml.parse()` for all other extensions.
+
+### `resolveSpecFile(basePath: string, name: string, type: "spec" | "impl"): Promise<string>`
+
+Resolves a spec file path by probing for `.{type}.md`, then `.{type}.yaml`, then `.{type}.yml`. Returns the first path that exists, or the `.yaml` path as a default (which will fail with a clear error when read).
 
 ---
 
@@ -190,7 +246,7 @@ Scans all `.spec.yaml` files in `features/`, extracts metadata, counts impl file
 
 ### `generate(projectRoot, options: GenerationOptions): Promise<GenerationResult>`
 
-Full generation pipeline: load spec, check lock, load template, select constraints, render, lock result. Options: `{ templateId, specId, specVersion, target, force? }`. Returns `{ success, output?, generation_id?, input_hash, template_hash, output_hash?, skipped?, error? }`.
+Full generation pipeline: load spec (`.spec.md` or `.spec.yaml` via `resolveSpecFile`), check lock, load template, select constraints, render, lock result. Options: `{ templateId, specId, specVersion, target, force? }`. Returns `{ success, output?, generation_id?, input_hash, template_hash, output_hash?, skipped?, error? }`.
 
 ---
 
@@ -207,6 +263,10 @@ Compiles and caches a Handlebars template file.
 ### `loadTemplateById(projectRoot, templateId): Promise<HandlebarsTemplateDelegate | null>`
 
 Resolution: project-local `.spectra/templates/<id>.tmpl` first, then built-in `templates/<id>.tmpl`. Returns null if not found.
+
+### `loadTemplateRaw(projectRoot, templateId): Promise<string | null>`
+
+Loads the raw template content (string) by ID without compiling. Uses the same resolution order as `loadTemplateById`. Returns null if not found. Used for computing template hashes.
 
 ### `listTemplates(projectRoot): Promise<string[]>`
 

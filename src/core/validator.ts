@@ -1,6 +1,5 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { parse } from "yaml";
 import type { ZodError } from "zod";
 import { type ZodType } from "zod";
 import {
@@ -12,6 +11,7 @@ import {
   GateSchema,
 } from "./spec-types.js";
 import { resolveSpectraPath } from "./config.js";
+import { isFeatureSpec, isImplSpec, parseSpecContent } from "./spec-reader.js";
 
 export interface ValidationResult {
   file: string;
@@ -45,13 +45,30 @@ function detectSpecType(parsed: Record<string, unknown>): string | null {
 
 export async function validateSpec(filePath: string): Promise<ValidationResult> {
   const raw = await readFile(filePath, "utf8");
-  const parsed = parse(raw);
+  let parsed: unknown;
+  try {
+    parsed = parseSpecContent(raw, filePath);
+  } catch (err) {
+    return {
+      file: filePath,
+      valid: false,
+      errors: [
+        {
+          path: "",
+          message: `File is not valid: ${err instanceof Error ? err.message : String(err)}`,
+          severity: "error",
+        },
+      ],
+    };
+  }
 
   if (!parsed || typeof parsed !== "object") {
     return {
       file: filePath,
       valid: false,
-      errors: [{ path: "", message: "File is not valid YAML", severity: "error" }],
+      errors: [
+        { path: "", message: "File is not valid YAML or Markdown+Frontmatter", severity: "error" },
+      ],
     };
   }
 
@@ -121,7 +138,7 @@ export async function validateAll(projectRoot: string): Promise<ValidationResult
     const featDir = resolveSpectraPath(projectRoot, "features");
     const files = await readdir(featDir);
     for (const f of files) {
-      if (f.startsWith("_") || (!f.endsWith(".spec.yaml") && !f.endsWith(".spec.yml"))) continue;
+      if (f.startsWith("_") || !isFeatureSpec(f)) continue;
       results.push(await validateSpec(join(featDir, f)));
     }
   } catch {
@@ -137,7 +154,7 @@ export async function validateAll(projectRoot: string): Promise<ValidationResult
       try {
         const implFiles = await readdir(implSubDir);
         for (const f of implFiles) {
-          if (f.endsWith(".impl.yaml") || f.endsWith(".impl.yml")) {
+          if (isImplSpec(f)) {
             results.push(await validateSpec(join(implSubDir, f)));
           }
         }
@@ -161,10 +178,12 @@ export async function validateCrossRefs(projectRoot: string): Promise<Validation
     const featDir = resolveSpectraPath(projectRoot, "features");
     const files = await readdir(featDir);
     for (const f of files) {
-      if (!f.endsWith(".spec.yaml") && !f.endsWith(".spec.yml")) continue;
+      if (!isFeatureSpec(f)) continue;
       const raw = await readFile(join(featDir, f), "utf8");
-      const parsed = parse(raw);
-      if (parsed?.spectra?.id) featureIds.add(parsed.spectra.id);
+      const parsed = parseSpecContent(raw, join(featDir, f));
+      if (parsed?.spectra && (parsed.spectra as Record<string, unknown>)?.id) {
+        featureIds.add((parsed.spectra as Record<string, unknown>).id as string);
+      }
     }
   } catch {
     // no features
@@ -179,11 +198,14 @@ export async function validateCrossRefs(projectRoot: string): Promise<Validation
       try {
         const implFiles = await readdir(implSubDir);
         for (const f of implFiles) {
-          if (!f.endsWith(".impl.yaml") && !f.endsWith(".impl.yml")) continue;
+          if (!isImplSpec(f)) continue;
           const raw = await readFile(join(implSubDir, f), "utf8");
-          const parsed = parse(raw);
-          const featureRef = parsed?.spectra?.feature_ref;
-          if (featureRef && !featureIds.has(featureRef)) {
+          const parsed = parseSpecContent(raw, join(implSubDir, f));
+          const spectraMeta = parsed?.spectra as Record<string, unknown> | undefined;
+          const featureRef = spectraMeta?.feature_ref as string | undefined;
+          // Strip semver suffix (e.g., "feat:auth@1.0.0" → "feat:auth") for ID comparison
+          const featureId = featureRef?.replace(/@\d+\.\d+\.\d+$/, "");
+          if (featureRef && featureId && !featureIds.has(featureId)) {
             results.push({
               file: join(implSubDir, f),
               valid: false,

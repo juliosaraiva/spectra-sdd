@@ -1,16 +1,17 @@
 import { Command } from "commander";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { stringify, parse } from "yaml";
+import { parse } from "yaml";
 import chalk from "chalk";
 import { resolveSpectraPath } from "../../core/config.js";
 import type { ImplSpec } from "../../core/spec-types.js";
+import { serializeImplSpec } from "../../core/frontmatter.js";
 
 const DEFAULT_CONCERNS = ["transport.rest", "persistence.relational", "auth.middleware"];
 
 function implTemplate(featureId: string, concern: string, featureRef: string): ImplSpec {
   const now = new Date().toISOString();
-  const implId = `impl:${featureId.replace(/^feat:/, "")}.${concern.replace(/\./g, "-")}`;
+  const implId = `impl:${featureId.replace(/^feat:/, "")}-${concern.replace(/\./g, "-")}`;
   return {
     spectra: {
       version: "1.0",
@@ -58,8 +59,8 @@ export const designCommand = new Command("design")
 
     for (const concern of concerns) {
       const impl = implTemplate(featId, concern, featureRef);
-      const fileName = `${concern.replace(/\./g, "-")}.impl.yaml`;
-      await writeFile(join(implDir, fileName), stringify(impl, { lineWidth: 120 }));
+      const fileName = `${concern.replace(/\./g, "-")}.impl.md`;
+      await writeFile(join(implDir, fileName), serializeImplSpec(impl));
       console.log(
         chalk.green(`  Created: ${chalk.cyan(`.spectra/impl/${featureName}/${fileName}`)}`)
       );

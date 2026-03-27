@@ -57,7 +57,7 @@ spectra spec new user-authentication [options]
 |--------|-------------|---------|
 | `--prefix <prefix>` | ID prefix | `feat` |
 
-Creates `.spectra/features/<name>.spec.yaml` with a TODO scaffold. The ID is formed as `<prefix>:<name>`. Rebuilds `_index.yaml` after creation.
+Creates `.spectra/features/<name>.spec.md` with a TODO scaffold in Markdown+Frontmatter format. The ID is formed as `<prefix>:<name>`. Rebuilds `_index.yaml` after creation.
 
 ### `spectra spec list`
 
@@ -71,7 +71,7 @@ Output columns: ID, Title, Status, Version, ACs. Status is color-coded: active=g
 
 ### `spectra spec show <id>`
 
-Print the raw YAML of a spec.
+Print the raw content of a spec file.
 
 ```bash
 spectra spec show feat:user-authentication
@@ -87,7 +87,7 @@ Recompute and update the content hash.
 spectra spec rehash feat:user-authentication
 ```
 
-Reads the spec file, computes `sha256:...` using canonical key ordering (excluding the `hash` field itself), writes the hash back into the spec's `hash` section, and rebuilds the index.
+Reads the spec file, computes `sha256:...` using canonical key ordering (excluding the `hash` field itself), writes the hash back into the spec's `hash` section in the original format (`.spec.md` or `.spec.yaml`), and rebuilds the index.
 
 ---
 
@@ -106,8 +106,8 @@ spectra design feat:user-authentication [options]
 **Behavior:**
 - Looks up the feature in `_index.yaml`
 - Creates `.spectra/impl/<feature-name>/` directory
-- For each concern, generates a scaffold `.impl.yaml` file
-- Concern dots are replaced with dashes in filenames (e.g., `transport.rest` becomes `transport-rest.impl.yaml`)
+- For each concern, generates a scaffold `.impl.md` file in Markdown+Frontmatter format
+- Concern dots are replaced with dashes in filenames (e.g., `transport.rest` becomes `transport-rest.impl.md`)
 - Each impl spec includes `feature_ref: "<feat-id>@<semver>"` linking to the parent feature
 
 ---
@@ -125,9 +125,9 @@ spectra validate [spec-id] [options]
 | `--all` | Validate all specs (constitution + features + impl) |
 | `--cross-refs` | Also check that impl specs reference valid feature IDs |
 
-**Type detection:** Reads `spectra.type` from the YAML, or falls back to filename pattern:
-- `.spec.yaml` = feature
-- `.impl.yaml` = implementation
+**Type detection:** Reads `spectra.type` from the content, or falls back to filename pattern:
+- `.spec.yaml` / `.spec.md` = feature
+- `.impl.yaml` / `.impl.md` = implementation
 - `.test.yaml` = test
 - `.migration.yaml` = migration
 - `.gate.yaml` = gate
@@ -187,6 +187,7 @@ spectra gate sign feat:user-authentication --phase specify [options]
 | `--phase <phase>` | **Required.** `specify`, `design`, `test-design`, `implement`, or `reconcile` | -- |
 | `--signer <name>` | Signer identity | `@$USER` |
 | `--comment <text>` | Approval comment | -- |
+| `--force` | Bypass phase ordering check | `false` |
 
 Computes the current spec content hash, writes a `.gate.yaml` file to `.spectra/gates/`, and updates the gate status in `trace.json`.
 
