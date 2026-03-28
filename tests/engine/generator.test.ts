@@ -309,17 +309,16 @@ describe("enforceSchema()", () => {
     expect(result.errors![0]).toContain("value");
   });
 
-  it("returns error for completely invalid content (not YAML or JSON)", () => {
-    // Force a YAML parse error by using content that parses as a plain string,
-    // then fails schema validation — and a separate test for truly unparseable content.
-    // YAML is very permissive, so we test JSON-path failure with malformed JSON
-    // by wrapping in a way that causes the schema to reject it.
+  it("returns invalid result when parsed content is not an object", () => {
+    // Use content that is likely to be parsed as a plain YAML string (scalar),
+    // not an object. The YAML/JSON parsing itself may succeed, but the result
+    // will fail validation against the expected object-shaped Zod schema.
     const plainString = `{{{{totally not yaml or json: [[[`;
 
-    // This may parse as a YAML string (scalar), not an object.
-    // enforceSchema will then fail the Zod validation.
+    // Parsed content is not an object, so enforceSchema should report invalid.
     const result = enforceSchema(plainString, schema);
     expect(result.valid).toBe(false);
+    expect(result.errors).toBeDefined();
   });
 });
 

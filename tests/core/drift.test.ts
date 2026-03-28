@@ -195,7 +195,12 @@ describe("detectStructuralDrift", () => {
       "// @spectra feat:auth@1.0.0 impl:transport.rest gen:abc123\nexport function auth() {}"
     );
     const items = await detectStructuralDrift(tmpDir);
-    expect(items.filter((i) => normalizePath(i.file) === "src/auth.ts")).toHaveLength(0);
+    expect(
+      items.filter((i) => {
+        const p = normalizePath(i.file);
+        return p === "src/auth.ts" || p.endsWith("/src/auth.ts");
+      })
+    ).toHaveLength(0);
   });
 
   it("warns when active spec has no authorized artifacts", async () => {
