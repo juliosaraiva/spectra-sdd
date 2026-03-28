@@ -23,7 +23,7 @@
 #
 # gh-aw-metadata: {"schema_version":"v3","frontmatter_hash":"252ff04d52ef368e78191d0beab21311a4ec8af2d599891d0e7df2c3e3c0c6d9","compiler_version":"v0.64.2","strict":true,"agent_id":"copilot"}
 
-name: "Auto-Documentation Updater"
+name: "Auto-README Updater"
 "on":
   pull_request:
     branches:
@@ -39,7 +39,7 @@ concurrency:
   group: "gh-aw-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}"
   cancel-in-progress: true
 
-run-name: "Auto-Documentation Updater"
+run-name: "Auto-README Updater"
 
 jobs:
   activation:
@@ -72,7 +72,7 @@ jobs:
           GH_AW_INFO_VERSION: "latest"
           GH_AW_INFO_AGENT_VERSION: "latest"
           GH_AW_INFO_CLI_VERSION: "v0.64.2"
-          GH_AW_INFO_WORKFLOW_NAME: "Auto-Documentation Updater"
+          GH_AW_INFO_WORKFLOW_NAME: "Auto-README Updater"
           GH_AW_INFO_EXPERIMENTAL: "false"
           GH_AW_INFO_SUPPORTS_TOOLS_ALLOWLIST: "true"
           GH_AW_INFO_STAGED: "false"
@@ -106,7 +106,7 @@ jobs:
       - name: Check workflow file timestamps
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
-          GH_AW_WORKFLOW_FILE: "auto-docs.lock.yml"
+          GH_AW_WORKFLOW_FILE: "auto-readme.lock.yml"
         with:
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
@@ -186,7 +186,7 @@ jobs:
           </system>
           GH_AW_PROMPT_4cf104bac2d3a2de_EOF
           cat << 'GH_AW_PROMPT_4cf104bac2d3a2de_EOF'
-          {{#runtime-import .github/workflows/auto-docs.md}}
+          {{#runtime-import .github/workflows/auto-readme.md}}
           GH_AW_PROMPT_4cf104bac2d3a2de_EOF
           } > "$GH_AW_PROMPT"
       - name: Interpolate variables and render templates
@@ -267,7 +267,7 @@ jobs:
       GH_AW_ASSETS_BRANCH: ""
       GH_AW_ASSETS_MAX_SIZE_KB: 0
       GH_AW_MCP_LOG_DIR: /tmp/gh-aw/mcp-logs/safeoutputs
-      GH_AW_WORKFLOW_ID_SANITIZED: autodocs
+      GH_AW_WORKFLOW_ID_SANITIZED: autoreadme
     outputs:
       checkout_pr_success: ${{ steps.checkout-pr.outputs.checkout_pr_success || 'true' }}
       has_patch: ${{ steps.collect_output.outputs.has_patch }}
@@ -773,7 +773,7 @@ jobs:
       issues: write
       pull-requests: write
     concurrency:
-      group: "gh-aw-conclusion-auto-docs"
+      group: "gh-aw-conclusion-auto-readme"
       cancel-in-progress: false
     outputs:
       noop_message: ${{ steps.noop.outputs.noop_message }}
@@ -804,7 +804,7 @@ jobs:
         env:
           GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
           GH_AW_NOOP_MAX: "1"
-          GH_AW_WORKFLOW_NAME: "Auto-Documentation Updater"
+          GH_AW_WORKFLOW_NAME: "Auto-README Updater"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
@@ -817,7 +817,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "Auto-Documentation Updater"
+          GH_AW_WORKFLOW_NAME: "Auto-README Updater"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
@@ -831,10 +831,10 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "Auto-Documentation Updater"
+          GH_AW_WORKFLOW_NAME: "Auto-README Updater"
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
-          GH_AW_WORKFLOW_ID: "auto-docs"
+          GH_AW_WORKFLOW_ID: "auto-readme"
           GH_AW_SECRET_VERIFICATION_RESULT: ${{ needs.activation.outputs.secret_verification_result }}
           GH_AW_CHECKOUT_PR_SUCCESS: ${{ needs.agent.outputs.checkout_pr_success }}
           GH_AW_INFERENCE_ACCESS_ERROR: ${{ needs.agent.outputs.inference_access_error }}
@@ -856,7 +856,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "Auto-Documentation Updater"
+          GH_AW_WORKFLOW_NAME: "Auto-README Updater"
           GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
           GH_AW_NOOP_MESSAGE: ${{ steps.noop.outputs.noop_message }}
@@ -933,7 +933,7 @@ jobs:
         if: always() && steps.detection_guard.outputs.run_detection == 'true'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
-          WORKFLOW_NAME: "Auto-Documentation Updater"
+          WORKFLOW_NAME: "Auto-README Updater"
           WORKFLOW_DESCRIPTION: "No description provided"
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
         with:
@@ -1041,11 +1041,11 @@ jobs:
       pull-requests: write
     timeout-minutes: 15
     env:
-      GH_AW_CALLER_WORKFLOW_ID: "${{ github.repository }}/auto-docs"
+      GH_AW_CALLER_WORKFLOW_ID: "${{ github.repository }}/auto-readme"
       GH_AW_ENGINE_ID: "copilot"
       GH_AW_ENGINE_MODEL: ${{ needs.agent.outputs.model }}
-      GH_AW_WORKFLOW_ID: "auto-docs"
-      GH_AW_WORKFLOW_NAME: "Auto-Documentation Updater"
+      GH_AW_WORKFLOW_ID: "auto-readme"
+      GH_AW_WORKFLOW_NAME: "Auto-README Updater"
     outputs:
       code_push_failure_count: ${{ steps.process_safe_outputs.outputs.code_push_failure_count }}
       code_push_failure_errors: ${{ steps.process_safe_outputs.outputs.code_push_failure_errors }}
