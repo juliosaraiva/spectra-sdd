@@ -1,5 +1,9 @@
-import { describe, it, expect } from "vitest";
-import { lintFeatureSpec } from "../../src/core/linter.js";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { stringify } from "yaml";
+import { lintFeatureSpec, lintAll } from "../../src/core/linter.js";
 import type { FeatureSpec } from "../../src/core/spec-types.js";
 
 function makeSpec(overrides: Partial<FeatureSpec> = {}): FeatureSpec {
@@ -174,5 +178,131 @@ describe("SPEC-008: Domain tags in vocabulary", () => {
     const results = lintFeatureSpec(spec, "test.yaml", ["security", "identity"]);
     const warnings = results.filter((r) => r.rule === "SPEC-008");
     expect(warnings).toHaveLength(0);
+  });
+});
+
+// ─── lintAll ────────────────────────────────────────────────────────────────
+
+const VALID_SPEC_YAML = stringify({
+  spectra: {
+    version: "1.0",
+    type: "feature",
+    id: "feat:auth",
+    semver: "1.0.0",
+    status: "draft",
+    created: "2026-01-01T00:00:00Z",
+    updated: "2026-01-01T00:00:00Z",
+    authors: ["@user"],
+  },
+  identity: {
+    title: "Auth Feature",
+    domain: ["security"],
+    tags: [],
+    summary: "Authentication feature",
+  },
+  acceptance_criteria: [
+    {
+      id: "AC-001",
+      title: "Login",
+      given: "a fast user",
+      when: "they login appropriately",
+      then: ["they should get a reasonable token"],
+      non_negotiable: false,
+    },
+  ],
+});
+
+describe("lintAll", () => {
+  let tmpDir = "";
+
+  beforeEach(async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "spectra-test-lintall-"));
+    await mkdir(join(tmpDir, ".spectra", "features"), { recursive: true });
+  });
+
+  afterEach(async () => {
+    if (!tmpDir) return;
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("returns empty array when features dir does not exist", async () => {
+    const emptyDir = await mkdtemp(join(tmpdir(), "spectra-test-empty-"));
+    await mkdir(join(emptyDir, ".spectra"), { recursive: true });
+    const results = await lintAll(emptyDir);
+    expect(results).toEqual([]);
+    await rm(emptyDir, { recursive: true, force: true });
+  });
+
+  it("returns lint results for specs with vague language", async () => {
+    await writeFile(join(tmpDir, ".spectra", "features", "auth.spec.yaml"), VALID_SPEC_YAML);
+    const results = await lintAll(tmpDir);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.some((r) => r.rule === "SPEC-002")).toBe(true);
+  });
+
+  it("detects missing non_negotiable ACs", async () => {
+    await writeFile(join(tmpDir, ".spectra", "features", "auth.spec.yaml"), VALID_SPEC_YAML);
+    const results = await lintAll(tmpDir);
+    expect(results.some((r) => r.rule === "SPEC-007")).toBe(true);
+  });
+
+  it("uses constitution vocabulary for domain tag checks", async () => {
+    const specWithBadDomain = stringify({
+      spectra: {
+        version: "1.0",
+        type: "feature",
+        id: "feat:test",
+        semver: "1.0.0",
+        status: "draft",
+        created: "2026-01-01T00:00:00Z",
+        updated: "2026-01-01T00:00:00Z",
+        authors: ["@user"],
+      },
+      identity: {
+        title: "Test",
+        domain: ["unknown-domain"],
+        tags: [],
+        summary: "Test feature",
+      },
+      acceptance_criteria: [
+        {
+          id: "AC-001",
+          title: "Test",
+          given: "a context",
+          when: "an action",
+          then: ["a result"],
+          non_negotiable: true,
+        },
+      ],
+    });
+    const constitutionYaml = stringify({
+      spectra: {
+        version: "1.0",
+        type: "constitution",
+        semver: "1.0.0",
+        updated: "2026-01-01T00:00:00Z",
+        stewards: ["@team"],
+      },
+      vocabulary: ["security"],
+      constraints: [
+        {
+          id: "SEC-001",
+          title: "No secrets",
+          description: "No secrets in code",
+          domain: ["security"],
+          enforcement: "MUST",
+        },
+      ],
+    });
+    await writeFile(join(tmpDir, ".spectra", "constitution.yaml"), constitutionYaml);
+    await writeFile(join(tmpDir, ".spectra", "features", "test.spec.yaml"), specWithBadDomain);
+    const results = await lintAll(tmpDir);
+    expect(results.some((r) => r.rule === "SPEC-008")).toBe(true);
+  });
+
+  it("proceeds without vocabulary when constitution is missing", async () => {
+    await writeFile(join(tmpDir, ".spectra", "features", "auth.spec.yaml"), VALID_SPEC_YAML);
+    const results = await lintAll(tmpDir);
+    expect(results.every((r) => r.rule !== "SPEC-008")).toBe(true);
   });
 });
