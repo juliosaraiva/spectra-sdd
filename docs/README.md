@@ -20,6 +20,7 @@ Welcome to the SPECTRA documentation. These guides cover everything from getting
 | [Linter Rules](linter-rules.md) | Every SPEC-NNN rule with pass/fail YAML examples |
 | [API Reference](api-reference.md) | Exported TypeScript functions from core/ and engine/ |
 | [Template Guide](template-guide.md) | Custom Handlebars templates, helpers, and context variables |
+| [Frontmatter](frontmatter.md) | Markdown+Frontmatter format, AC parser, round-trip integrity, and pipeline integration |
 
 ## Project
 
