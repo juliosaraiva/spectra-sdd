@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { mkdir, rm } from "node:fs/promises";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -11,14 +11,19 @@ import {
 } from "../../src/core/gate.js";
 import type { Phase } from "../../src/core/spec-types.js";
 
-const TEST_DIR = join(tmpdir(), "spectra-test-gates");
-const GATES_DIR = join(TEST_DIR, ".spectra", "gates");
 const HASH = "sha256:" + "a".repeat(64);
 const HASH2 = "sha256:" + "b".repeat(64);
 
+let TEST_DIR: string;
+
 beforeEach(async () => {
-  await rm(TEST_DIR, { recursive: true, force: true });
+  TEST_DIR = await mkdtemp(join(tmpdir(), "spectra-test-gates-"));
+  const GATES_DIR = join(TEST_DIR, ".spectra", "gates");
   await mkdir(GATES_DIR, { recursive: true });
+});
+
+afterEach(async () => {
+  await rm(TEST_DIR, { recursive: true, force: true });
 });
 
 describe("signGate", () => {

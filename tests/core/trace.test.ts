@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { mkdir, writeFile, rm } from "node:fs/promises";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -13,8 +13,6 @@ import {
 } from "../../src/core/trace.js";
 import type { ContentHash } from "../../src/core/spec-types.js";
 
-const TEST_DIR = join(tmpdir(), "spectra-test-trace");
-const SPECTRA_DIR = join(TEST_DIR, ".spectra");
 const HASH_A = ("sha256:" + "a".repeat(64)) as ContentHash;
 const HASH_B = ("sha256:" + "b".repeat(64)) as ContentHash;
 const HASH_C = ("sha256:" + "c".repeat(64)) as ContentHash;
@@ -25,10 +23,18 @@ const EMPTY_TRACE = JSON.stringify({
   specs: {},
 });
 
+let TEST_DIR: string;
+let SPECTRA_DIR: string;
+
 beforeEach(async () => {
-  await rm(TEST_DIR, { recursive: true, force: true });
+  TEST_DIR = await mkdtemp(join(tmpdir(), "spectra-test-trace-"));
+  SPECTRA_DIR = join(TEST_DIR, ".spectra");
   await mkdir(SPECTRA_DIR, { recursive: true });
   await writeFile(join(SPECTRA_DIR, "trace.json"), EMPTY_TRACE);
+});
+
+afterEach(async () => {
+  await rm(TEST_DIR, { recursive: true, force: true });
 });
 
 describe("updateTrace", () => {
