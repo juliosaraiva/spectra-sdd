@@ -19,7 +19,7 @@ The generator passes the **raw file content** to LLM templates, so the model rec
 
 ## File Format
 
-A frontmatter file has two sections separated by `---` delimiters. Below is a shortened excerpt showing the structure — see the full required fields in `SpectraMetaSchema` (`created`, `updated`, `authors`, `version` are also required):
+A frontmatter file has two sections separated by `---` delimiters. Below is a shortened excerpt showing the structure — see the full fields in `SpectraMetaSchema` (at minimum `type`, `id`, `semver`, `status`, `created`, `updated`, and `authors` are required; `version` defaults to `"1.0"` and `reviewers` defaults to `[]` if omitted):
 
 ```markdown
 ---
