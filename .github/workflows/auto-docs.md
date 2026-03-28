@@ -140,6 +140,49 @@ Never modify these files under any circumstances:
 - `CONTRIBUTING.md`
 - `CHANGELOG.md`
 
+## Documentation Review Pass
+
+After applying all mapping rules above, perform a **review pass** to verify that the documentation files touched in this PR still accurately reflect the current state of the source code. This catches drift that predates this PR — stale content that was already wrong before this PR's changes.
+
+For each documentation file you modified (or would have modified) in this PR:
+
+1. **Read the full documentation file** and identify every documented function, option, schema field, or rule
+2. **Cross-reference against the current source file** — verify that every item in the docs actually exists in code
+3. **Check for staleness:**
+   - Functions documented but no longer exported or renamed
+   - CLI options documented but removed from Commander chains
+   - Schema fields documented but removed from Zod definitions
+   - Linter rules documented but with changed severity or message
+   - Configuration fields documented but with changed defaults
+4. **Check for gaps:**
+   - Exported functions present in code but missing from docs
+   - CLI options registered in Commander but not documented
+   - Schema fields in Zod definitions but not in docs tables
+
+### Review pass output
+
+If the review pass finds drift:
+- Fix the stale or missing content in the same commit as the mapping rule updates
+- Include a `### Documentation Review` section in the PR summary comment listing each finding:
+
+```
+### Documentation Review
+
+The following pre-existing documentation drift was detected and corrected:
+
+- **docs/api-reference.md**: Removed `parseYamlSpec()` — function was renamed to `parseSpecContent()` in a prior PR
+- **docs/cli-reference.md**: Added missing `--cross-refs` option to `spectra validate`
+```
+
+If the review pass finds no drift, include: "Documentation review complete — no pre-existing drift detected."
+
+### Review pass constraints
+
+- Only review documentation files that are relevant to the source files changed in this PR — do not audit the entire `docs/` directory on every run
+- Do not rewrite or rephrase documentation that is technically accurate — only fix factual inaccuracies (wrong signatures, missing items, removed items)
+- Preserve the existing writing style, tone, and structure — the review pass corrects facts, not prose
+- The core purpose and description of SPECTRA must never be changed — the project identity, philosophy (spec-driven development, nothing exists without a spec, nothing drifts without detection), and architectural overview are authoritative as written
+
 ## Error Handling
 
 - If a source file cannot be read (deleted or binary), skip that mapping rule and note it in the summary comment
