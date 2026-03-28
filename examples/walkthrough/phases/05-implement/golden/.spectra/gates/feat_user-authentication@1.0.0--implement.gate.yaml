@@ -1,0 +1,15 @@
+gate:
+  spec_id: feat:user-authentication
+  spec_semver: 1.0.0
+  spec_hash: sha256:cd906950d6a479b348a3a4a6211cd0af69c994089cf3c3fcbb2ad5dd5431c8d2
+  phase: implement
+  status: approved
+approval:
+  approved_by: "@you"
+  approved_at: 2026-03-28T15:29:04.095Z
+  method: cli
+  comment: 3 source files with trace comments, drift score 0
+artifacts_reviewed: []
+expiry:
+  expires_if_spec_changes: true
+  manual_expiry: null
