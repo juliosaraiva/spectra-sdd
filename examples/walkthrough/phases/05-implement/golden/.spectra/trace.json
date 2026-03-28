@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-03-28T15:29:10.158Z",
+  "specs": {
+    "feat:user-authentication": {
+      "hash": "sha256:cd906950d6a479b348a3a4a6211cd0af69c994089cf3c3fcbb2ad5dd5431c8d2",
+      "status": "active",
+      "authorized_artifacts": [
+        {
+          "path": "src/routes/auth.ts",
+          "hash": "sha256:eafe5da9166b648b61b102b6d4ec1ca63ed624fc328cbabf40736d8ad20964d8",
+          "concern": "transport.rest",
+          "impl_ref": "impl:user-authentication-transport-rest",
+          "generation_id": "gen:walk01",
+          "type": "source"
+        },
+        {
+          "path": "src/db/auth.ts",
+          "hash": "sha256:80dba0b628b8b185a940ee027221caa853f2fdb6e5eda5452b38b9f7e7dee1ea",
+          "concern": "persistence.relational",
+          "impl_ref": "impl:user-authentication-persistence-relational",
+          "generation_id": "gen:walk02",
+          "type": "source"
+        },
+        {
+          "path": "src/middleware/auth.ts",
+          "hash": "sha256:30075969d8921298f0717562132e3122fb8266fccf628b36a71faedcc79c0fa7",
+          "concern": "auth.middleware",
+          "impl_ref": "impl:user-authentication-auth-middleware",
+          "generation_id": "gen:walk03",
+          "type": "source"
+        }
+      ],
+      "ac_coverage": {
+        "AC-001": {
+          "covered": true,
+          "test_ids": [
+            "TC-001"
+          ]
+        },
+        "AC-002": {
+          "covered": true,
+          "test_ids": [
+            "TC-002"
+          ]
+        },
+        "AC-003": {
+          "covered": true,
+          "test_ids": [
+            "TC-003"
+          ]
+        },
+        "AC-004": {
+          "covered": true,
+          "test_ids": [
+            "TC-004"
+          ]
+        }
+      },
+      "gates": {
+        "specify": "approved",
+        "design": "approved",
+        "test-design": "approved",
+        "implement": "approved"
+      }
+    }
+  }
+}

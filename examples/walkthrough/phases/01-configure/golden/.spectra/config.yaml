@@ -1,0 +1,17 @@
+spectra:
+  version: "1.0"
+  project_id: taskflow-api
+ai:
+  adapter: none
+  primary_agent: none
+spec:
+  id_prefix: feat
+  default_status: draft
+git:
+  gate_branch_protection: false
+  trace_commit_hook: false
+hooks: {}
+ai_tools:
+  adapter: none
+  enforcement: warn
+  skip_paths: []

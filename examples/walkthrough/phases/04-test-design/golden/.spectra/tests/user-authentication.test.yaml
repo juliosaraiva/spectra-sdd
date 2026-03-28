@@ -1,0 +1,63 @@
+spectra:
+  version: "1.0"
+  type: test
+  id: "test:user-authentication"
+  semver: "1.0.0"
+  status: draft
+  created: "2026-03-28T00:00:00Z"
+  updated: "2026-03-28T00:00:00Z"
+  authors:
+    - "@you"
+  reviewers: []
+  feature_ref: "feat:user-authentication@1.0.0"
+
+test_cases:
+  - id: TC-001
+    ac_ref: AC-001
+    title: Successful login returns JWT
+    given: a registered user with email alice@example.com and valid bcrypt-hashed password
+    when: the user submits correct email and password to POST /auth/sessions
+    then:
+      - HTTP 201 is returned
+      - response body contains a signed JWT token
+      - response body contains expires_at 24 hours from now
+      - response body contains user_id
+      - identity.user.authenticated event is emitted
+    fixtures:
+      - "user:alice"
+
+  - id: TC-002
+    ac_ref: AC-002
+    title: Wrong password returns 401 with generic message
+    given: a registered user exists with email alice@example.com
+    when: the user submits correct email but wrong password to POST /auth/sessions
+    then:
+      - HTTP 401 is returned
+      - 'response body is {"error": "Invalid credentials"}'
+      - response body does not reveal whether email exists
+      - failed attempt is recorded in the database
+    fixtures:
+      - "user:alice"
+
+  - id: TC-003
+    ac_ref: AC-003
+    title: Unknown email returns 401 with identical message and timing
+    given: no user with email unknown@example.com exists in the database
+    when: any caller submits unknown@example.com with any password to POST /auth/sessions
+    then:
+      - HTTP 401 is returned
+      - 'response body is {"error": "Invalid credentials"}'
+      - response time is within 50ms of TC-002 response time
+    fixtures: []
+
+  - id: TC-004
+    ac_ref: AC-004
+    title: Rate limit triggers after 5 failed attempts
+    given: 5 consecutive failed attempts from IP 127.0.0.1 within 10 minutes
+    when: a sixth attempt is made from IP 127.0.0.1
+    then:
+      - HTTP 429 is returned
+      - Retry-After header value is 600
+      - no authentication logic is executed
+    fixtures:
+      - "ratelimit:exhausted"

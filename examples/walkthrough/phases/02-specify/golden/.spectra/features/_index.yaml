@@ -1,0 +1,17 @@
+spectra_index:
+  version: "1.0"
+  last_updated: 2026-03-28T15:26:12.444Z
+features:
+  - id: feat:user-authentication
+    title: User Authentication
+    status: active
+    semver: 1.0.0
+    domain:
+      - identity
+      - security
+    summary: Users authenticate via email and password to receive a signed JWT session token
+    ac_count: 4
+    impl_count: 0
+    test_count: 0
+    hash: sha256:cd906950d6a479b348a3a4a6211cd0af69c994089cf3c3fcbb2ad5dd5431c8d2
+    file: user-authentication.spec.md
