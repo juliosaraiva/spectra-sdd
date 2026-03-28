@@ -2,6 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+
+function normalizePath(p: string | undefined): string {
+  return (p ?? "").replace(/\\/g, "/");
+}
 import {
   detectStructuralDrift,
   detectSemanticDrift,
@@ -191,7 +195,7 @@ describe("detectStructuralDrift", () => {
       "// @spectra feat:auth@1.0.0 impl:transport.rest gen:abc123\nexport function auth() {}"
     );
     const items = await detectStructuralDrift(tmpDir);
-    expect(items.filter((i) => i.file === "src/auth.ts")).toHaveLength(0);
+    expect(items.filter((i) => normalizePath(i.file) === "src/auth.ts")).toHaveLength(0);
   });
 
   it("warns when active spec has no authorized artifacts", async () => {
@@ -237,7 +241,7 @@ describe("detectStructuralDrift", () => {
       "// @spectra feat:deep@1.0.0\nexport const x = 1;"
     );
     const items = await detectStructuralDrift(tmpDir);
-    expect(items.some((i) => i.file?.includes("sub/deep.ts"))).toBe(true);
+    expect(items.some((i) => normalizePath(i.file).includes("sub/deep.ts"))).toBe(true);
   });
 });
 

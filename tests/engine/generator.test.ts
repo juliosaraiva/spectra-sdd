@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { z } from "zod";
@@ -64,10 +64,7 @@ AC: {{this.id}} - {{this.title}}
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 async function makeProjectDir(): Promise<string> {
-  const dir = join(
-    tmpdir(),
-    `spectra-engine-test-${Date.now()}-${Math.random().toString(36).slice(2)}`
-  );
+  const dir = await mkdtemp(join(tmpdir(), "spectra-engine-test-"));
   const spectraDir = join(dir, ".spectra");
 
   await mkdir(join(spectraDir, "features"), { recursive: true });
