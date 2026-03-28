@@ -19,15 +19,19 @@ The generator passes the **raw file content** to LLM templates, so the model rec
 
 ## File Format
 
-A frontmatter file has two sections separated by `---` delimiters:
+A frontmatter file has two sections separated by `---` delimiters. Below is a shortened excerpt showing the structure — see the full required fields in `SpectraMetaSchema` (`created`, `updated`, `authors`, `version` are also required):
 
 ```markdown
 ---
 spectra:
+  version: "1.0"
   type: feature
   id: "feat:user-authentication"
   semver: "2.1.0"
   status: active
+  created: "2024-01-01"
+  updated: "2024-06-15"
+  authors: [alice]
   constitution_ref: "const:v1.0"
 
 identity:
@@ -230,7 +234,7 @@ YAML is stringified with `lineWidth: 120` to prevent unnecessary line wrapping.
 
 `serializeImplSpec(impl, designBody?)` puts only the `spectra` block in YAML frontmatter. The body comes from one of three sources (in priority order):
 
-1. The `designBody` parameter if provided explicitly
+1. The `designBody` parameter, if it is a non-empty string
 2. `impl.design.description` if it is a string
 3. The full `impl.design` object rendered as a YAML code block
 
@@ -303,7 +307,7 @@ All downstream consumers (validator, linter, gate, generator, index builder) go 
 
 | Scenario | Behavior |
 |----------|----------|
-| Missing `---` delimiters | `parseFrontmatter()` throws `"File does not contain valid YAML frontmatter"` |
+| Missing `---` delimiters | `parseFrontmatter()` throws `"File does not contain valid YAML frontmatter (expected --- delimiters)"` |
 | Invalid YAML in frontmatter | YAML parser throws; error propagates to caller |
 | Empty body after `---` | Body is empty string; `parseMarkdownACs()` returns `[]` |
 | Windows line endings (`\r\n`) | Handled by regex -- CRLF-tolerant throughout |
