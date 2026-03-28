@@ -7,7 +7,7 @@ This phase sets up SPECTRA in the `taskflow-api` starter project. By the end you
 ## Prerequisites
 
 - Node.js ≥ 20
-- `spectra` installed globally (`npm install -g @spectra-sdd/cli` or built from source)
+- `spectra` installed globally (`npm install -g spectra-sdd` or built from source)
 
 ---
 

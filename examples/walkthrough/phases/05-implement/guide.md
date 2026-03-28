@@ -33,8 +33,8 @@ Expected output:
 ## Step 2 — Install dependencies
 
 ```bash
-npm install bcrypt jsonwebtoken
-npm install -D @types/bcrypt @types/jsonwebtoken
+npm install bcryptjs jsonwebtoken express-rate-limit
+npm install -D @types/bcryptjs @types/jsonwebtoken
 ```
 
 ---
@@ -47,13 +47,25 @@ Create the three source files below. **Line 1 of every file must be the trace co
 
 ```typescript
 // @spectra feat:user-authentication@1.0.0 impl:transport.rest gen:walk01
-import { Router, type Request, type Response } from "express";
+import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { findUserByEmail, createSession } from "../db/auth.js";
-import { verifyPassword, signToken } from "../middleware/auth.js";
+import { verifyPassword, signToken, SENTINEL_HASH } from "../middleware/auth.js";
 
-export const authRouter = Router();
+const router = Router();
 
-authRouter.post("/auth/sessions", async (req: Request, res: Response) => {
+const limiter = rateLimit({
+  windowMs: 600_000,
+  max: 5,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res.set("Retry-After", "600").status(429).json({ error: "Too many requests" });
+  },
+});
+
+router.post("/auth/sessions", limiter, async (req, res) => {
   const { email, password } = req.body as { email?: string; password?: string };
 
   if (!email || !password) {
@@ -61,35 +73,32 @@ authRouter.post("/auth/sessions", async (req: Request, res: Response) => {
     return;
   }
 
-  // Look up user — same code path for unknown email and wrong password (AC-003)
   const user = await findUserByEmail(email);
-  const hashToCheck = user?.password_hash ?? "$2b$12$invalidhashtopreventtimingattacks";
-  const valid = await verifyPassword(password, hashToCheck);
+  const hash = user?.password_hash ?? SENTINEL_HASH;
+  const valid = await verifyPassword(password, hash);
 
   if (!user || !valid) {
-    // AC-002, AC-003: generic message, no email existence leak
     res.status(401).json({ error: "Invalid credentials" });
     return;
   }
 
-  // AC-001: issue JWT and persist session
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const session = await createSession(user.id, expiresAt);
-  const token = signToken(user.id, expiresAt);
+  const token = signToken(user.id);
+  const session = await createSession(user.id);
 
   res.status(201).json({
     token,
-    expires_at: expiresAt.toISOString(),
-    user_id: session.user_id,
+    expires_at: session.expires_at.toISOString(),
+    user_id: user.id,
   });
 });
+
+export default router;
 ```
 
 ### `src/db/auth.ts`
 
 ```typescript
 // @spectra feat:user-authentication@1.0.0 impl:persistence.relational gen:walk02
-import type { Pool } from "pg";
 
 export interface User {
   id: string;
@@ -105,26 +114,33 @@ export interface Session {
   expires_at: Date;
 }
 
-// Injected at startup — never import directly to keep this module testable
-let pool: Pool;
-export function setPool(p: Pool): void {
-  pool = p;
-}
+// In-memory store for walkthrough purposes
+const users = new Map<string, User>([
+  [
+    "alice@example.com",
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      email: "alice@example.com",
+      // bcrypt hash of "correct-password" with cost 12
+      password_hash: "$2b$12$examplehashforwalkthroughonly",
+      created_at: new Date("2026-01-01T00:00:00Z"),
+    },
+  ],
+]);
 
 export async function findUserByEmail(email: string): Promise<User | null> {
-  const result = await pool.query<User>(
-    "SELECT id, email, password_hash, created_at FROM users WHERE email = $1",
-    [email]
-  );
-  return result.rows[0] ?? null;
+  return users.get(email) ?? null;
 }
 
-export async function createSession(userId: string, expiresAt: Date): Promise<Session> {
-  const result = await pool.query<Session>(
-    "INSERT INTO sessions (user_id, expires_at) VALUES ($1, $2) RETURNING *",
-    [userId, expiresAt]
-  );
-  return result.rows[0];
+export async function createSession(userId: string): Promise<Session> {
+  const now = new Date();
+  const expires_at = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  return {
+    id: crypto.randomUUID(),
+    user_id: userId,
+    created_at: now,
+    expires_at,
+  };
 }
 ```
 
@@ -132,41 +148,37 @@ export async function createSession(userId: string, expiresAt: Date): Promise<Se
 
 ```typescript
 // @spectra feat:user-authentication@1.0.0 impl:auth.middleware gen:walk03
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
 
-const JWT_SECRET = process.env["JWT_SECRET"]; // SEC-001: read from env, never hardcode
+// Pre-computed sentinel hash — used when the user is not found (AC-003 timing parity)
+export const SENTINEL_HASH = "$2b$12$sentinelhashforwalkthroughonlyx";
 
-export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
-  // bcrypt.compare is constant-time — prevents timing attacks (AC-002, AC-003)
-  return bcrypt.compare(plain, hash);
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
 }
 
-export function signToken(userId: string, expiresAt: Date): string {
-  if (!JWT_SECRET) throw new Error("JWT_SECRET environment variable is not set");
-  return jwt.sign({ sub: userId }, JWT_SECRET, {
-    algorithm: "HS256",
-    expiresIn: Math.floor((expiresAt.getTime() - Date.now()) / 1000),
-  });
+export function signToken(userId: string): string {
+  const secret = process.env.JWT_SECRET; // SEC-001: read from env, never hardcode
+  if (!secret) throw new Error("JWT_SECRET is not set");
+  return jwt.sign({ sub: userId }, secret, { algorithm: "HS256", expiresIn: "24h" });
 }
 
 export function verifyToken(req: Request, res: Response, next: NextFunction): void {
-  const header = req.headers["authorization"];
-  if (!header?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Missing or malformed Authorization header" });
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  if (!JWT_SECRET) {
-    res.status(500).json({ error: "Server misconfiguration" });
-    return;
-  }
+  const token = authHeader.slice(7);
   try {
-    const payload = jwt.verify(header.slice(7), JWT_SECRET) as jwt.JwtPayload;
-    (req as Request & { user?: string }).user = payload["sub"];
+    const secret = process.env.JWT_SECRET ?? "";
+    const payload = jwt.verify(token, secret, { algorithms: ["HS256"] }) as jwt.JwtPayload;
+    (req as Request & { user: { userId: string } }).user = { userId: String(payload["sub"]) };
     next();
   } catch {
-    res.status(401).json({ error: "Invalid or expired token" });
+    res.status(401).json({ error: "Unauthorized" });
   }
 }
 ```
@@ -198,7 +210,7 @@ Then open `.spectra/trace.json` and add the following under `specs["feat:user-au
           "path": "src/routes/auth.ts",
           "hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "concern": "transport.rest",
-          "impl_ref": "impl:user-authentication.transport-rest",
+          "impl_ref": "impl:user-authentication-transport-rest",
           "generation_id": "walk01",
           "type": "source"
         },
@@ -206,7 +218,7 @@ Then open `.spectra/trace.json` and add the following under `specs["feat:user-au
           "path": "src/db/auth.ts",
           "hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "concern": "persistence.relational",
-          "impl_ref": "impl:user-authentication.persistence-relational",
+          "impl_ref": "impl:user-authentication-persistence-relational",
           "generation_id": "walk02",
           "type": "source"
         },
@@ -214,7 +226,7 @@ Then open `.spectra/trace.json` and add the following under `specs["feat:user-au
           "path": "src/middleware/auth.ts",
           "hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "concern": "auth.middleware",
-          "impl_ref": "impl:user-authentication.auth-middleware",
+          "impl_ref": "impl:user-authentication-auth-middleware",
           "generation_id": "walk03",
           "type": "source"
         }
@@ -237,9 +249,9 @@ Then open `.spectra/trace.json` and add the following under `specs["feat:user-au
 }
 ```
 
-Replace the `hash` values with actual SHA-256 hashes computed over the file contents, or leave the placeholder zeros — SPECTRA will recalculate them on the next `spectra diff` run.
+Replace the `hash` values with actual SHA-256 hashes computed over the file contents, or leave the placeholder zeros — `spectra diff` will report a drift score against the current file contents but will not modify `trace.json`. To update the stored hashes, edit `trace.json` manually and replace the placeholder values with the real SHA-256 digests of each file.
 
-> **When using Claude Code integration:** The post-write hook calls `spectra trace update --authorize` automatically, which computes real hashes and appends the artifact entry. The manual edit above is only needed in the no-adapter workflow.
+> **When using Claude Code integration:** A post-write hook calls `spectra trace update` automatically and appends the artifact entry. The manual edit above is only needed in the no-adapter workflow.
 
 ---
 
@@ -273,10 +285,21 @@ spectra trace forward feat:user-authentication
 ```
 
 ```
-feat:user-authentication@1.0.0
-  impl:transport.rest        → src/routes/auth.ts
-  impl:persistence.relational → src/db/auth.ts
-  impl:auth.middleware        → src/middleware/auth.ts
+Artifacts for feat:user-authentication:
+
+  Status: active
+  Hash:   sha256:...
+
+  Authorized Artifacts:
+    src/routes/auth.ts [source]
+      Concern: transport.rest
+      Impl: impl:user-authentication-transport-rest
+    src/db/auth.ts [source]
+      Concern: persistence.relational
+      Impl: impl:user-authentication-persistence-relational
+    src/middleware/auth.ts [source]
+      Concern: auth.middleware
+      Impl: impl:user-authentication-auth-middleware
 ```
 
 Reverse trace — given a file, show which spec authorized it:
@@ -286,11 +309,14 @@ spectra trace why src/routes/auth.ts
 ```
 
 ```
-src/routes/auth.ts
-  authorized by: feat:user-authentication@1.0.0
-  concern:       transport.rest
-  impl_ref:      impl:user-authentication.transport-rest
-  generation_id: walk01
+Trace Ancestry:
+
+  File:          src/routes/auth.ts
+  Spec:          feat:user-authentication
+  Spec Hash:     sha256:...
+  Impl Ref:      impl:user-authentication-transport-rest
+  Concern:       transport.rest
+  Generation ID: walk01
 ```
 
 ---

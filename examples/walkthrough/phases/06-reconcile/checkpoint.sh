@@ -74,7 +74,7 @@ echo ""
 
 if ! command -v spectra > /dev/null 2>&1; then
   echo "  [FAIL] 'spectra' binary not found in PATH."
-  echo "         Install it first: npm install -g @spectra-sdd/cli"
+  echo "         Install it first: npm install -g spectra-sdd"
   echo "         or run: npm link  (from the spectra repo)"
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

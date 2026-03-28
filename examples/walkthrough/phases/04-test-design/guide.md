@@ -28,7 +28,7 @@ Expected output:
 
 ## Step 2 — Create the test spec
 
-> **Note:** `spectra generate tests` is a planned command that requires an AI adapter configured in `config.yaml`. For this walkthrough the adapter is `none`, so the command is not available. Create the test spec file manually by copying the golden file:
+> **Note:** `spectra generate tests <feat-id>` is available in the CLI but requires an AI adapter configured in `config.yaml` to actually generate tests. With `ai.adapter: none` (as in this walkthrough), the command runs but only prints a stub/help message and does not create any files. Create the test spec file manually by copying the golden file instead:
 
 ```bash
 cp examples/walkthrough/phases/04-test-design/golden/.spectra/tests/user-authentication.test.yaml \
@@ -116,7 +116,7 @@ test_cases:
 
 ## Step 4 — Validate all specs
 
-> **Note:** `spectra validate test:user-authentication` is not currently supported — the ID lookup only resolves feature specs via `_index.yaml`. Use `--all` to validate all spec types including test specs.
+> **Note:** `spectra validate test:user-authentication` is not currently supported — the ID lookup only resolves feature specs via `_index.yaml`. Use `--all` to validate all spec types currently supported (constitution, feature specs, and impl specs).
 
 ```bash
 spectra validate --all
@@ -135,7 +135,6 @@ All 5 specs are valid.
 ```
 
 > **Limitation:** The `--all` validation currently does not scan the `.spectra/tests/` directory. Test spec schema validation is handled internally when test specs are loaded by other commands. This is a known gap.
-- Every test case has at least one `then` item
 
 ---
 

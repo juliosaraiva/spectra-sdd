@@ -159,9 +159,7 @@ spectra validate feat:user-authentication
 Expected output:
 
 ```
-✔ feat:user-authentication@1.0.0 — schema valid
-  4 acceptance criteria parsed
-  interfaces: 1 input, 1 output, 1 event emitted
+PASS .spectra/features/user-authentication.spec.md
 ```
 
 If validation fails, check that:

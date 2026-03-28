@@ -61,15 +61,11 @@ spectra trace coverage feat:user-authentication
 Expected output:
 
 ```
-feat:user-authentication@1.0.0 — AC coverage
+AC Coverage for feat:user-authentication:
 
-  AC-001  Successful login                 ✔ covered  TC-001
-  AC-002  Invalid password rejected        ✔ covered  TC-002
-  AC-003  Unknown email rejected           ✔ covered  TC-003
-  AC-004  Rate limiting after 5 failures   ✔ covered  TC-004
-
-Coverage: 4/4 ACs covered (100%)
-Non-negotiable: 3/3 covered ✔
+  Total ACs:   4
+  Covered:     4
+  Coverage:    100%
 ```
 
 > **Note:** This is **spec-level coverage** — it shows which ACs have corresponding test cases in the test spec. It does not show runtime code coverage (line coverage, branch coverage). To see runtime results, run your actual test suite (`npm test`) separately. SPECTRA's coverage report answers "did we plan a test for every AC?" not "did all tests pass?".
@@ -83,17 +79,28 @@ spectra trace forward feat:user-authentication
 ```
 
 ```
-feat:user-authentication@1.0.0
-  ├── design
-  │   ├── impl:user-authentication.transport-rest        → .spectra/impl/user-authentication/transport-rest.impl.md
-  │   ├── impl:user-authentication.persistence-relational → .spectra/impl/user-authentication/persistence-relational.impl.md
-  │   └── impl:user-authentication.auth-middleware        → .spectra/impl/user-authentication/auth-middleware.impl.md
-  ├── test-design
-  │   └── test:user-authentication                        → .spectra/tests/user-authentication.test.yaml
-  └── implement
-      ├── transport.rest         → src/routes/auth.ts
-      ├── persistence.relational → src/db/auth.ts
-      └── auth.middleware        → src/middleware/auth.ts
+Artifacts for feat:user-authentication:
+
+  Status: active
+  Hash:   sha256:...
+
+  Authorized Artifacts:
+    src/routes/auth.ts [source]
+      Concern: transport.rest
+      Impl: impl:user-authentication-transport-rest
+    src/db/auth.ts [source]
+      Concern: persistence.relational
+      Impl: impl:user-authentication-persistence-relational
+    src/middleware/auth.ts [source]
+      Concern: auth.middleware
+      Impl: impl:user-authentication-auth-middleware
+
+  Gates:
+    specify         approved
+    design          approved
+    test-design     approved
+    implement       approved
+    reconcile       pending
 ```
 
 This is the complete traceability chain from spec to code. Every artifact is traceable back to the spec that authorized it.
@@ -109,11 +116,7 @@ spectra gate verify feat:user-authentication --phase implement
 Expected output:
 
 ```
-✔ feat:user-authentication@1.0.0 — implement gate valid
-  Gate hash:  sha256:a3f9...
-  Spec hash:  sha256:a3f9...  (match ✔)
-  Signed at:  2026-03-28T12:30:00Z
-  Signed by:  @you
+Gate is valid for feat:user-authentication phase implement
 ```
 
 `gate verify` is different from `gate check`:

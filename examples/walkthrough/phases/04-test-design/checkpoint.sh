@@ -59,7 +59,7 @@ echo ""
 
 if ! command -v spectra > /dev/null 2>&1; then
   echo "  [FAIL] 'spectra' binary not found in PATH."
-  echo "         Install it first: npm install -g @spectra-sdd/cli"
+  echo "         Install it first: npm install -g spectra-sdd"
   echo "         or run: npm link  (from the spectra repo)"
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -97,7 +97,7 @@ fi
 # ── Command check ────────────────────────────────────────────────────────────
 # Note: 'spectra validate test:user-authentication' is not supported —
 # ID lookup only works for feature specs via _index.yaml.
-# We validate all specs instead, which includes the test spec.
+# We validate all specs supported by 'spectra validate --all' instead.
 require_cmd_success "'spectra validate --all' exits 0" \
   spectra validate --all
 

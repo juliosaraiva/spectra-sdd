@@ -42,7 +42,7 @@ Expected output:
 ✔ Created .spectra/impl/user-authentication/auth-middleware.impl.md
 ```
 
-> **Note:** Concern namespaces use dotted notation (`transport.rest`) in spec IDs but become dashes in filenames (`transport-rest.impl.md`). This is a SPECTRA convention — the colon in `impl:` IDs is also replaced with `_` in gate filenames.
+> **Note:** Concern namespaces use dotted notation (`transport.rest`) in the `--concerns` flag and in the `concern` field of impl specs, but the spec ID itself uses dashes (`impl:user-authentication-transport-rest`). This is a SPECTRA convention — dots are replaced with dashes in spec IDs to satisfy the `[a-z0-9-]+` format, and the colon in `impl:` is replaced with `_` in gate filenames.
 
 ---
 
@@ -57,7 +57,7 @@ Replace the scaffolded contents of each file with the following. The frontmatter
 spectra:
   version: "1.0"
   type: impl
-  id: "impl:user-authentication.transport-rest"
+  id: "impl:user-authentication-transport-rest"
   semver: "1.0.0"
   status: active
   created: "2026-03-28T10:00:00Z"
@@ -114,7 +114,7 @@ Content-Type: `application/json`
 spectra:
   version: "1.0"
   type: impl
-  id: "impl:user-authentication.persistence-relational"
+  id: "impl:user-authentication-persistence-relational"
   semver: "1.0.0"
   status: active
   created: "2026-03-28T10:00:00Z"
@@ -166,7 +166,7 @@ spectra:
 spectra:
   version: "1.0"
   type: impl
-  id: "impl:user-authentication.auth-middleware"
+  id: "impl:user-authentication-auth-middleware"
   semver: "1.0.0"
   status: active
   created: "2026-03-28T10:00:00Z"
@@ -226,15 +226,12 @@ spectra validate --all --cross-refs
 Expected output:
 
 ```
-✔ feat:user-authentication@1.0.0 — valid
-✔ impl:user-authentication.transport-rest@1.0.0 — valid
-    feature_ref: feat:user-authentication@1.0.0 ✔
-✔ impl:user-authentication.persistence-relational@1.0.0 — valid
-    feature_ref: feat:user-authentication@1.0.0 ✔
-✔ impl:user-authentication.auth-middleware@1.0.0 — valid
-    feature_ref: feat:user-authentication@1.0.0 ✔
+PASS .spectra/features/user-authentication.spec.md
+PASS .spectra/impl/user-authentication/auth-middleware.impl.md
+PASS .spectra/impl/user-authentication/persistence-relational.impl.md
+PASS .spectra/impl/user-authentication/transport-rest.impl.md
 
-Cross-reference check: all feature_refs resolve ✔
+All 4 specs are valid.
 ```
 
 The `--cross-refs` flag checks that every `feature_ref` in an impl spec points to a feature spec that actually exists in the index. This catches typos in IDs before they reach the gate.
@@ -283,7 +280,7 @@ Keep concern names narrow. If a concern is doing more than one thing, split it.
 | **Commands run** | `spectra gate check`, `spectra design`, `spectra validate --all --cross-refs`, `spectra gate sign` |
 | **Files created/edited** | `transport-rest.impl.md`, `persistence-relational.impl.md`, `auth-middleware.impl.md`, `feat_user-authentication@1.0.0--design.gate.yaml` |
 | **Concepts required** | Concern namespaces (`transport.rest`), impl spec `feature_ref` binding, cross-reference validation |
-| **New conventions** | `impl:` ID format `impl:<feature>.<concern>`; concern-to-code-layer mapping |
+| **New conventions** | `impl:` ID format `impl:<feature>-<concern>` (dashes only); concern-to-code-layer mapping |
 
 ---
 
