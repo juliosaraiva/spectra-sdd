@@ -43,10 +43,15 @@ identity:
 interfaces:
   inputs:
     - name: credentials
-      schema: "{ email: Email, password: string[8..128] }"
+      schema:
+        email: Email
+        password: string[8..128]
   outputs:
     - name: session
-      schema: "{ token: JWT, expires_at: ISO8601, user_id: UUID }"
+      schema:
+        token: JWT
+        expires_at: ISO8601
+        user_id: UUID
 ---
 
 # User Authentication
@@ -97,7 +102,7 @@ The core regex that splits every frontmatter file:
 
 - **Lazy match** (`*?`) ensures the *first* `\n---` closes the frontmatter block, not the last. This prevents YAML document separators inside the body from being misinterpreted.
 - **CRLF tolerance** (`\r?\n`) throughout -- files with Windows line endings parse correctly.
-- **Optional trailing newline** after the closing `---` -- files that end immediately after the closing delimiter (no body) parse cleanly. This was a bug fixed in commit `709e516`.
+- **Optional trailing newline** after the closing `---` -- files that end immediately after the closing delimiter (no body) parse cleanly. Earlier versions required a trailing newline; the regex was updated to make it optional.
 
 `parseFrontmatter()` returns `{ meta, body }` where `meta` is the parsed YAML object and `body` is the raw Markdown string.
 
@@ -172,10 +177,16 @@ The entire Markdown body becomes a single `design.description` string. Empty bod
 ```markdown
 ---
 spectra:
+  version: "1.0"
   type: impl
   id: "impl:user-auth-rest"
   semver: "1.0.0"
   status: active
+  created: "2024-01-01"
+  updated: "2024-06-15"
+  authors: [alice]
+  feature_ref: "feat:user-authentication@2.1.0"
+  concern: transport.rest
 ---
 
 # transport.rest
@@ -294,12 +305,12 @@ All downstream consumers (validator, linter, gate, generator, index builder) go 
 | `spectra spec new` | -- | `serializeFeatureSpec()` writes `.spec.md` |
 | `spectra design` | -- | `serializeImplSpec()` writes `.impl.md` |
 | `spectra spec rehash` | `.spec.md` | `parseFrontmatter()` → update hash → rewrite with body preserved |
-| `spectra validate` | `.spec.md`, `.impl.md` | `parseSpecContent()` → Zod schema validation |
-| `spectra lint` | `.spec.md` | `readSpecFile()` → quality rule checks on parsed ACs |
-| `spectra gate sign/verify` | `.spec.md` | `readSpecFile()` → hash computation for gate binding |
-| `spectra generate` | `.spec.md`, `.impl.md` | Raw file content passed to LLM templates; parsed spec used for lock |
-| Index builder | `.spec.md`, `.impl.md` | `readSpecFile()` → extract metadata for `_index.yaml` |
-| Cross-ref validator | `.spec.md`, `.impl.md` | `parseSpecContent()` → verify `feature_ref` links |
+| `spectra validate` | `.spec.md`, `.impl.md`, `.spec.yaml`, `.impl.yaml`, `.spec.yml`, `.impl.yml` | `parseSpecContent()` → Zod schema validation |
+| `spectra lint` | `.spec.md`, `.spec.yaml`, `.spec.yml` | `readSpecFile()` → quality rule checks on parsed ACs |
+| `spectra gate sign/verify` | `.spec.md`, `.spec.yaml`, `.spec.yml` | `readSpecFile()` → hash computation for gate binding |
+| `spectra generate` | `.spec.md`, `.impl.md`, `.spec.yaml`, `.impl.yaml`, `.spec.yml`, `.impl.yml` | Raw file content passed to LLM templates; parsed spec used for lock |
+| Index builder | `.spec.md`, `.impl.md`, `.spec.yaml`, `.impl.yaml`, `.spec.yml`, `.impl.yml` | `readSpecFile()` → extract metadata for `_index.yaml` |
+| Cross-ref validator | `.spec.md`, `.impl.md`, `.spec.yaml`, `.impl.yaml`, `.spec.yml`, `.impl.yml` | `parseSpecContent()` → verify `feature_ref` links |
 
 ---
 
