@@ -45,8 +45,8 @@ sequenceDiagram
     rect rgb(255, 230, 255)
         Note over Dev,GH: 3. Test Design — map tests to acceptance criteria
         Dev->>Dev: Write user-auth.test.yaml (AC-001 to TC-001)
-        Dev->>S: spectra validate test:user-auth
-        S-->>Dev: Valid
+        Dev->>Dev: Review and validate TC-to-AC mapping (AC-001 to TC-001)
+        Note over Dev,GH: spectra validate does not yet support test specs; review mapping manually
         Dev->>S: spectra gate sign feat:user-auth --phase test-design
         S-->>Dev: Test-design gate approved
     end
@@ -90,6 +90,6 @@ sequenceDiagram
 |-------|------|-------------|
 | **Specify** | Define acceptance criteria, interfaces, and NFRs | `spectra spec new <name>` |
 | **Design** | Break the feature into implementation concerns | `spectra design <id> --concerns "..."` |
-| **Test Design** | Map each acceptance criterion to a test case | `spectra validate test:<name>` |
+| **Test Design** | Map each acceptance criterion to a test case | Write test spec, review TC-to-AC mapping manually |
 | **Implement** | Write the code, check for drift | `spectra diff` |
 | **Reconcile** | Verify full coverage and no drift | `spectra trace coverage <id>` |
