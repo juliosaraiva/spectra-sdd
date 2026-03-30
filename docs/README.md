@@ -9,6 +9,7 @@ Welcome to the SPECTRA documentation. These guides cover everything from getting
 | [Getting Started](getting-started.md) | Hands-on tutorial: init to drift detection in 10 steps |
 | [Architecture](architecture.md) | 5-tier spec hierarchy, module map, and data flow |
 | [Core Concepts](core-concepts.md) | Deep dives into constitution, gates, traceability, drift, and hashing |
+| [Workflow Diagram](workflow-diagram.md) | Mermaid sequence diagram of the complete SPECTRA spec-driven development lifecycle |
 
 ## References
 

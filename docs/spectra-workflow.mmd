@@ -1,0 +1,71 @@
+sequenceDiagram
+    autonumber
+    actor Dev as Developer
+    participant S as SPECTRA
+    participant GH as GitHub
+
+    %% ── Specify ──
+    rect rgb(255, 245, 230)
+        Note over Dev,GH: 1. Specify — define what to build
+        Dev->>S: spectra spec new user-auth
+        S-->>Dev: user-auth.spec.md scaffold
+        Dev->>Dev: Write acceptance criteria, interfaces, NFRs
+        Dev->>S: spectra validate feat:user-auth
+        S-->>Dev: Valid
+        Dev->>S: spectra gate sign feat:user-auth --phase specify
+        S-->>Dev: Specify gate approved
+    end
+
+    %% ── Design ──
+    rect rgb(230, 255, 230)
+        Note over Dev,GH: 2. Design — plan how to build it
+        Dev->>S: spectra design feat:user-auth --concerns "transport.rest,persistence.relational"
+        S-->>Dev: Impl spec scaffolds created
+        Dev->>Dev: Write design details for each concern
+        Dev->>S: spectra validate --all --cross-refs
+        S-->>Dev: Valid
+        Dev->>S: spectra gate sign feat:user-auth --phase design
+        S-->>Dev: Design gate approved
+    end
+
+    %% ── Test Design ──
+    rect rgb(255, 230, 255)
+        Note over Dev,GH: 3. Test Design — map tests to acceptance criteria
+        Dev->>Dev: Write user-auth.test.yaml (AC-001 to TC-001)
+        Dev->>Dev: Review and validate TC-to-AC mapping (AC-001 to TC-001)
+        Note over Dev,GH: spectra validate does not yet support test specs; review mapping manually
+        Dev->>S: spectra gate sign feat:user-auth --phase test-design
+        S-->>Dev: Test-design gate approved
+    end
+
+    %% ── Implement ──
+    rect rgb(230, 245, 255)
+        Note over Dev,GH: 4. Implement — write the code
+        Dev->>Dev: Write source code + tests
+        Dev->>S: spectra diff
+        S-->>Dev: No drift detected
+        Dev->>S: spectra gate sign feat:user-auth --phase implement
+        S-->>Dev: Implement gate approved
+    end
+
+    %% ── Reconcile ──
+    rect rgb(240, 240, 240)
+        Note over Dev,GH: 5. Reconcile — verify everything aligns
+        Dev->>S: spectra diff
+        S-->>Dev: Drift score: 0.0
+        Dev->>S: spectra trace coverage feat:user-auth
+        S-->>Dev: 100% AC coverage
+        Dev->>S: spectra gate verify feat:user-auth --phase implement
+        S-->>Dev: Gate integrity verified
+        Dev->>S: spectra gate sign feat:user-auth --phase reconcile
+        S-->>Dev: Lifecycle complete
+    end
+
+    %% ── Ship ──
+    rect rgb(220, 245, 220)
+        Note over Dev,GH: Ship it
+        Dev->>S: spectra status feat:user-auth
+        S-->>Dev: All 5 gates approved
+        Dev->>GH: git push + open pull request
+        GH-->>Dev: PR ready for review
+    end
